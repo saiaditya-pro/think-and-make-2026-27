@@ -1,0 +1,3 @@
+# Contains real program PII (principal names/phones/emails) and a PDF with
+# plaintext legacy login credentials -- never committed. See README.md.
+docs/

@@ -1,0 +1,39 @@
+{% load static %}
+<section class="report-page">
+  <header>
+    <h1>Think And Make 2026-27 &mdash; Evaluation Report</h1>
+    <p class="subtitle">Inqui Buddy &middot; Innovation Evaluator | {{ report.partner_name }}</p>
+  </header>
+  <div class="details">
+    <div class="fields">
+      <div><span class="label">SCHOOL</span><span class="value">{{ report.school_name }}</span></div>
+      <div><span class="label">PARTNER</span><span class="value">{{ report.partner_name }}</span></div>
+      <div><span class="label">GRADE &amp; SECTION</span><span class="value">Grade {{ report.grade }} &middot; Section {{ report.section }}</span></div>
+      <div><span class="label">TEAM CODE</span><span class="value">{{ report.team_code }}</span></div>
+      <div><span class="label">SL NAME</span><span class="value">{{ report.sl_name }}</span></div>
+      <div><span class="label">STUDENTS</span><span class="value">{{ report.student_names }}</span></div>
+    </div>
+    <div class="idea-photo">
+      {% if report.idea_photo_url %}
+        <img src="{{ report.idea_photo_url }}" alt="Team's idea sheet">
+      {% else %}
+        <div class="idea-photo-placeholder">Team's idea sheet</div>
+      {% endif %}
+    </div>
+  </div>
+  <table class="questions">
+    <thead>
+      <tr><th>#</th><th>English</th><th>&#0c24;&#0c46;&#0c32;&#0c41;&#0c17;&#0c41;</th></tr>
+    </thead>
+    <tbody>
+      {% for q in report.questions %}
+        <tr><td>{{ forloop.counter }}</td><td>{{ q.question_en }}</td><td>{{ q.question_te }}</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  <footer>
+    <span>Page 1 of 1</span>
+    <span>Generated: {{ report.generated_at|date:"d M Y" }}</span>
+    <span>Inqui-Lab &middot; Think &amp; Make 2026-27</span>
+  </footer>
+</section>

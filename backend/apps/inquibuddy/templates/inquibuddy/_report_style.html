@@ -1,0 +1,27 @@
+<style>
+  @page { size: A4; margin: 18mm 16mm; }
+  body {
+    font-family: "Nirmala UI", "Noto Sans Telugu", "Noto Sans", Arial, sans-serif;
+    color: #1a2b3c;
+    font-size: 11pt;
+  }
+  .report-page { page-break-after: always; }
+  .report-page:last-child { page-break-after: auto; }
+  header { background: #0f4c5c; color: #fff; padding: 14px 18px; border-radius: 8px 8px 0 0; }
+  header h1 { margin: 0; font-size: 15pt; }
+  header .subtitle { margin: 2px 0 0; font-size: 9pt; opacity: 0.85; }
+  .details { display: flex; justify-content: space-between; border: 1px solid #d7e3e8; border-top: none;
+             border-radius: 0 0 8px 8px; padding: 14px 18px; margin-bottom: 14px; }
+  .fields div { margin-bottom: 8px; }
+  .label { display: block; font-size: 8pt; letter-spacing: 0.04em; color: #6b8590; text-transform: uppercase; }
+  .value { display: block; font-weight: 600; }
+  .idea-photo img, .idea-photo-placeholder {
+    width: 140px; height: 100px; object-fit: cover; border-radius: 6px; background: #e8f2f5;
+  }
+  .idea-photo-placeholder { display: flex; align-items: center; justify-content: center; color: #6b8590; font-size: 8pt; }
+  table.questions { width: 100%; border-collapse: collapse; }
+  table.questions th { background: #0f4c5c; color: #fff; text-align: left; padding: 8px; font-size: 9pt; }
+  table.questions td { border-bottom: 1px solid #e2ecef; padding: 8px; vertical-align: top; font-size: 9.5pt; }
+  table.questions td:first-child { width: 24px; color: #6b8590; }
+  footer { display: flex; justify-content: space-between; margin-top: 14px; font-size: 8pt; color: #6b8590; }
+</style>

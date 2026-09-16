@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+{% include "inquibuddy/_report_style.html" %}
+</head>
+<body>
+{% for report in team_reports %}
+  {% include "inquibuddy/_report_page.html" %}
+{% endfor %}
+</body>
+</html>
