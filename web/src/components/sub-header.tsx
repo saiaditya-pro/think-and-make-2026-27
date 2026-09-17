@@ -5,24 +5,29 @@ export function SubHeader({
   eyebrow,
   title,
   backHref = "/dashboard",
+  right,
 }: {
   eyebrow: string;
   title: string;
   backHref?: string;
+  right?: React.ReactNode;
 }) {
   return (
-    <header className="bg-[#0f4c5c] text-white px-6 py-4 flex items-center gap-3">
-      <Link
-        href={backHref as never}
-        className="size-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center shrink-0"
-        aria-label="Back"
-      >
-        <ChevronLeft className="size-4" />
-      </Link>
-      <div>
-        <p className="text-xs font-semibold tracking-wide text-sky-300">{eyebrow}</p>
-        <h1 className="text-base font-bold">{title}</h1>
+    <header className="bg-[#0f4c5c] text-white px-6 py-4 flex items-center justify-between gap-3">
+      <div className="flex items-center gap-3">
+        <Link
+          href={backHref as never}
+          className="size-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center shrink-0"
+          aria-label="Back"
+        >
+          <ChevronLeft className="size-4" />
+        </Link>
+        <div>
+          <p className="text-xs font-semibold tracking-wide text-sky-300">{eyebrow}</p>
+          <h1 className="text-base font-bold">{title}</h1>
+        </div>
       </div>
+      {right && <div className="flex items-center gap-3 shrink-0">{right}</div>}
     </header>
   );
 }

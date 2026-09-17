@@ -18,6 +18,11 @@ class School(TimeStampedModel):
         ("aided", "Aided"),
     ]
     MEDIUM_CHOICES = [("telugu", "Telugu"), ("english", "English"), ("urdu", "Urdu")]
+    SMART_BOARD_CHOICES = [
+        ("yes", "Yes"),
+        ("no", "No"),
+        ("yes_not_working", "Yes but not working"),
+    ]
 
     instance = models.ForeignKey(ProgramInstance, on_delete=models.PROTECT, related_name="schools")
     school_code = models.CharField(max_length=20)
@@ -38,7 +43,7 @@ class School(TimeStampedModel):
 
     lab_room = models.BooleanField(null=True, blank=True)
     internet = models.BooleanField(null=True, blank=True)
-    smart_board = models.BooleanField(null=True, blank=True)
+    smart_board = models.CharField(max_length=20, choices=SMART_BOARD_CHOICES, blank=True, default="")
     kit_storage = models.BooleanField(null=True, blank=True)
 
     maps_link = models.URLField(blank=True)
@@ -51,6 +56,16 @@ class School(TimeStampedModel):
 
     visited_by = models.CharField(max_length=150, blank=True)
     visit_date = models.DateField(null=True, blank=True)
+
+    form1_submitted = models.BooleanField(
+        default=False, help_text="Set once School Enrollment Form 1 has been submitted for this school."
+    )
+    form1_submitted_at = models.DateTimeField(null=True, blank=True)
+
+    form2_submitted = models.BooleanField(
+        default=False, help_text="Set once Schools Contact Info (Form 2) has been submitted for this school."
+    )
+    form2_submitted_at = models.DateTimeField(null=True, blank=True)
 
     external_ref = models.CharField(
         max_length=64, blank=True, default="", help_text="Original Google Form Submission ID."

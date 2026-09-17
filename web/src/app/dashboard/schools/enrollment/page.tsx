@@ -3,7 +3,7 @@ import { SignOutButton } from "@/components/sign-out-button";
 import { SubHeader } from "@/components/sub-header";
 import { Badge } from "@/components/ui/badge";
 
-import { SLSelectionForm } from "./sl-selection-form";
+import { EnrollmentForm } from "./enrollment-form";
 
 const ROLE_LABEL: Record<string, string> = { admin: "ADMIN", iif_staff: "IIF", school: "SCHOOL" };
 
@@ -14,8 +14,8 @@ export default async function Page() {
     <div className="min-h-screen bg-slate-50">
       <SubHeader
         eyebrow="INQUI-LAB · THINK & MAKE"
-        title="SL Selection Assessment — Form 4"
-        backHref="/dashboard"
+        title="School Enrollment — Form 1"
+        backHref="/dashboard/schools"
         right={
           <>
             <Badge variant="secondary" className="bg-white/15 text-white border-0">
@@ -26,7 +26,7 @@ export default async function Page() {
         }
       />
       <main className="max-w-2xl mx-auto px-4 py-6">
-        <SLSelectionForm />
+        <EnrollmentForm />
       </main>
     </div>
   );

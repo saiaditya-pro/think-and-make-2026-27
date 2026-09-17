@@ -40,3 +40,11 @@ def admin_client(db):
     client = APIClient()
     client.force_authenticate(user=admin)
     return client
+
+
+@pytest.fixture
+def iif_staff_client(db):
+    staff = User.objects.create_user(username="iif1", password="pw", role=User.IIF_STAFF)
+    client = APIClient()
+    client.force_authenticate(user=staff)
+    return client

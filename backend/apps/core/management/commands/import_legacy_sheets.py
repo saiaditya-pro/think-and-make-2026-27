@@ -43,6 +43,18 @@ def _bool(value) -> bool:
     return str(value).strip().lower() in TRUE_STRINGS if value is not None else False
 
 
+def _smart_board(value) -> str:
+    """Tri-state: 'yes' / 'no' / 'yes_not_working', matching School.SMART_BOARD_CHOICES."""
+    if value is None:
+        return ""
+    normalized = str(value).strip().lower()
+    if "not working" in normalized:
+        return "yes_not_working"
+    if normalized in TRUE_STRINGS:
+        return "yes"
+    return "no"
+
+
 def _date(value):
     if isinstance(value, datetime):
         return value.date()
@@ -119,7 +131,7 @@ class Command(BaseCommand):
                     "principal_acknowledged": _bool(row.get("Principal Acknowledged")),
                     "lab_room": _bool(row.get("Lab Room")) if row.get("Lab Room") is not None else None,
                     "internet": _bool(row.get("Internet")) if row.get("Internet") is not None else None,
-                    "smart_board": _bool(row.get("Smart Board")) if row.get("Smart Board") is not None else None,
+                    "smart_board": _smart_board(row.get("Smart Board")),
                     "kit_storage": _bool(row.get("Kit Storage")) if row.get("Kit Storage") is not None else None,
                     "maps_link": row.get("Maps Link") or "",
                     "observations": row.get("Observations") or "",
