@@ -37,7 +37,13 @@
           "cameraPermission": "Allow Think & Make to access your camera to photograph idea sheets."
         }
       ],
-      "expo-sharing"
+      "expo-sharing",
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "Allow Think & Make to access your location to record the school's Google Maps location."
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true

@@ -6,10 +6,9 @@ import { useState } from "react";
 import { Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 import { ScreenHeader } from "@/components/screen-header";
+import { TeamCard } from "@/components/team-card";
 import { useAuth } from "@/lib/auth-context";
 import type { InquibuddySubmission, Paginated } from "@/lib/types";
-
-import { TeamCard } from "./team-card";
 
 export default function TeamsScreen() {
   const { auth, authFetch } = useAuth();
