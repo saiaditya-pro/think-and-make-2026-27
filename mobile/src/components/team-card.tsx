@@ -1,4 +1,5 @@
 import { AudioModule, RecordingPresets, setAudioModeAsync, useAudioRecorder } from "expo-audio";
+import * as DocumentPicker from "expo-document-picker";
 import { File, Paths } from "expo-file-system";
 import * as ImagePicker from "expo-image-picker";
 import * as Sharing from "expo-sharing";
@@ -79,9 +80,10 @@ export function TeamCard({ submission, onChanged }: { submission: InquibuddySubm
   }
 
   async function pickAudio() {
-    // Reuses the image picker's media library for simplicity; a dedicated
-    // audio-file picker (expo-document-picker) can replace this later.
-    Alert.alert("Use “Record Audio” to capture the team's pitch directly.");
+    const result = await DocumentPicker.getDocumentAsync({ type: "audio/*", copyToCacheDirectory: true });
+    if (result.canceled) return;
+    const asset = result.assets[0];
+    await uploadFile("audio", asset.uri, asset.name, asset.mimeType ?? "audio/m4a");
   }
 
   async function downloadReport() {

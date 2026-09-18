@@ -1,6 +1,6 @@
 import { useRouter } from "expo-router";
-import { ClipboardList, Star } from "lucide-react-native";
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { ClipboardList, Home, Package, Star, Users } from "lucide-react-native";
+import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 import { ScreenHeader } from "@/components/screen-header";
 import { useAuth } from "@/lib/auth-context";
@@ -20,7 +20,7 @@ export default function HomeScreen() {
           </TouchableOpacity>
         }
       />
-      <View style={styles.body}>
+      <ScrollView contentContainerStyle={styles.body}>
         <Text style={styles.school}>{auth?.user.display_name ?? auth?.user.username}</Text>
 
         <TouchableOpacity style={styles.card} onPress={() => router.push("/(app)/schools/enrollment")}>
@@ -28,6 +28,38 @@ export default function HomeScreen() {
           <View style={{ marginLeft: 12 }}>
             <Text style={styles.cardTitle}>School Enrollment</Text>
             <Text style={styles.cardSubtitle}>Visit data, infra, principal details</Text>
+          </View>
+        </TouchableOpacity>
+
+        <TouchableOpacity style={[styles.card, { marginTop: 12 }]} onPress={() => router.push("/(app)/schools/contact-info")}>
+          <Home color="#0ea5e9" size={22} />
+          <View style={{ marginLeft: 12 }}>
+            <Text style={styles.cardTitle}>Schools Contact Info</Text>
+            <Text style={styles.cardSubtitle}>Principal, teachers, session schedule</Text>
+          </View>
+        </TouchableOpacity>
+
+        <TouchableOpacity style={[styles.card, { marginTop: 12 }]} onPress={() => router.push("/(app)/headcounts")}>
+          <Users color="#0ea5e9" size={22} />
+          <View style={{ marginLeft: 12 }}>
+            <Text style={styles.cardTitle}>Students Count Info</Text>
+            <Text style={styles.cardSubtitle}>SL / cluster / team / student totals</Text>
+          </View>
+        </TouchableOpacity>
+
+        <TouchableOpacity style={[styles.card, { marginTop: 12 }]} onPress={() => router.push("/(app)/sl-selection")}>
+          <Star color="#0ea5e9" size={22} />
+          <View style={{ marginLeft: 12 }}>
+            <Text style={styles.cardTitle}>SL Selection Assessment</Text>
+            <Text style={styles.cardSubtitle}>Student Leader selection per section</Text>
+          </View>
+        </TouchableOpacity>
+
+        <TouchableOpacity style={[styles.card, { marginTop: 12 }]} onPress={() => router.push("/(app)/kits")}>
+          <Package color="#0ea5e9" size={22} />
+          <View style={{ marginLeft: 12 }}>
+            <Text style={styles.cardTitle}>Kits Handover Info</Text>
+            <Text style={styles.cardSubtitle}>Kit delivery & acknowledgement</Text>
           </View>
         </TouchableOpacity>
 
@@ -40,17 +72,17 @@ export default function HomeScreen() {
         </TouchableOpacity>
 
         <Text style={styles.note}>
-          Other Think & Make forms (kits, SL selection) are available on the web panel — this app also covers
-          School Enrollment and the camera/audio-heavy InquiBuddy flow.
+          This app covers the full Think & Make form flow — School Enrollment through Kits Handover — plus the
+          camera/audio-heavy InquiBuddy evaluator.
         </Text>
-      </View>
+      </ScrollView>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: "#f8fafc" },
-  body: { padding: 16 },
+  body: { padding: 16, paddingBottom: 32 },
   school: { fontSize: 13, color: "#64748b", marginBottom: 16 },
   card: {
     backgroundColor: "#fff",
