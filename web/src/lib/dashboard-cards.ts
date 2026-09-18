@@ -10,7 +10,7 @@ export type DashboardCard = {
 };
 
 export const DASHBOARD_CARDS: DashboardCard[] = [
-  { slug: "schools", title: "School Enrollment", subtitle: "Visit data, infra, principal details", icon: ClipboardList },
+  { slug: "schools/enrollment", title: "School Enrollment", subtitle: "Visit data, infra, principal details", icon: ClipboardList },
   { slug: "schools/contact-info", title: "Schools Contact Info", subtitle: "Principal, teachers, session schedule", icon: Home },
   { slug: "headcounts", title: "Students Count Info", subtitle: "SL / cluster / team / student totals", icon: Users },
   { slug: "sl-selection", title: "SL Selection Assessment", subtitle: "Student Leader selection per section", icon: Star },

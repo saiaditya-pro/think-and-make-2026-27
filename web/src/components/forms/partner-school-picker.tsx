@@ -3,6 +3,7 @@
 import { Loader2 } from "lucide-react";
 import { useState } from "react";
 
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { usePartners, useSchoolDetail, useSchoolsByPartner } from "@/hooks/use-school-lookup";
@@ -64,6 +65,18 @@ export function usePartnerSchoolPicker({
         </Select>
       </Field>
 
+      {partnersQuery.isError && (
+        <StatusBanner
+          title="Couldn't load partners."
+          body="Check your connection and try again."
+          action={
+            <Button type="button" variant="outline" size="sm" onClick={() => partnersQuery.refetch()}>
+              Retry
+            </Button>
+          }
+        />
+      )}
+
       <Field label="Select School" required>
         <Select
           items={schoolsQuery.data?.results.map((s) => ({ value: String(s.id), label: s.name })) ?? []}
@@ -84,6 +97,18 @@ export function usePartnerSchoolPicker({
         </Select>
         <p className="text-xs text-muted-foreground">Schools load from the roster and filter by partner.</p>
       </Field>
+
+      {schoolsQuery.isError && (
+        <StatusBanner
+          title="Couldn't load schools for this partner."
+          body="Check your connection and try again."
+          action={
+            <Button type="button" variant="outline" size="sm" onClick={() => schoolsQuery.refetch()}>
+              Retry
+            </Button>
+          }
+        />
+      )}
 
       <Field label="School Code">
         <Input readOnly value={school?.school_code ?? ""} placeholder="auto-filled" className="bg-muted/50" />

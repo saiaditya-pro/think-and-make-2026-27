@@ -15,7 +15,7 @@ export default async function Page() {
       <SubHeader
         eyebrow="INQUI-LAB · THINK & MAKE"
         title="School Enrollment — Form 1"
-        backHref="/dashboard/schools"
+        backHref="/dashboard"
         right={
           <>
             <Badge variant="secondary" className="bg-white/15 text-white border-0">
