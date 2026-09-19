@@ -1,0 +1,47 @@
+/* Think & Make brand theme for the Django admin (django-unfold).
+   Mirrors the web dashboard: teal sidebar, coral accents, cream page bg. */
+
+:root {
+  --tm-teal: #0f4c5c;
+  --tm-teal-dark: #0b3a46;
+  --tm-bg: #faf5ee;
+}
+
+/* Sidebar */
+#nav-sidebar,
+#nav-sidebar-inner {
+  background-color: var(--tm-teal) !important;
+  border-color: var(--tm-teal-dark) !important;
+}
+
+#nav-sidebar .text-important,
+#nav-sidebar .text-font-important-light,
+#nav-sidebar .text-font-important-dark,
+#nav-sidebar #site-name a {
+  color: #fff !important;
+}
+
+#nav-sidebar .text-subtle,
+#nav-sidebar .text-font-subtle-light,
+#nav-sidebar .text-font-subtle-dark {
+  color: rgb(255 255 255 / 65%) !important;
+}
+
+#nav-sidebar-apps a {
+  color: rgb(255 255 255 / 85%) !important;
+}
+
+#nav-sidebar-apps a:hover {
+  background-color: rgb(255 255 255 / 10%) !important;
+  color: #fff !important;
+}
+
+#nav-sidebar-apps h2 a {
+  color: #fff !important;
+}
+
+/* Page background */
+body,
+#main {
+  background-color: var(--tm-bg) !important;
+}

@@ -1,6 +1,6 @@
 "use client";
 
-import { BarChart3, Camera, Home, LayoutGrid, Plus, Radio, School, Star, Users } from "lucide-react";
+import { BarChart3, Camera, Home, LayoutGrid, Plus, Radio, Star, Users } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
@@ -18,10 +18,7 @@ import {
 
 type NavItem = { href: string; label: string; icon: React.ComponentType<{ className?: string }> };
 
-export const PRIMARY_NAV: NavItem[] = [
-  { href: "/dashboard/reports", label: "Dashboard", icon: Home },
-  { href: "/dashboard/schools", label: "Schools", icon: School },
-];
+export const PRIMARY_NAV: NavItem[] = [{ href: "/dashboard/reports", label: "Dashboard", icon: Home }];
 
 export const FORMS_NAV: NavItem[] = [
   { href: "/dashboard/schools/enrollment", label: "1 · Enrollment", icon: LayoutGrid },

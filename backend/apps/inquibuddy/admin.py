@@ -1,14 +1,25 @@
 from django.contrib import admin
+from unfold.admin import ModelAdmin
 
 from apps.inquibuddy.models import AIFeedbackQuestion, FeedbackReport, InquibuddySubmission, SubmissionFile
 
 
 @admin.register(InquibuddySubmission)
-class InquibuddySubmissionAdmin(admin.ModelAdmin):
+class InquibuddySubmissionAdmin(ModelAdmin):
     list_display = ["team", "status", "evaluation_count"]
     list_filter = ["status"]
 
 
-admin.site.register(SubmissionFile)
-admin.site.register(AIFeedbackQuestion)
-admin.site.register(FeedbackReport)
+@admin.register(SubmissionFile)
+class SubmissionFileAdmin(ModelAdmin):
+    pass
+
+
+@admin.register(AIFeedbackQuestion)
+class AIFeedbackQuestionAdmin(ModelAdmin):
+    pass
+
+
+@admin.register(FeedbackReport)
+class FeedbackReportAdmin(ModelAdmin):
+    pass

@@ -7,6 +7,7 @@ from pathlib import Path
 
 import dj_database_url
 from decouple import Csv, config
+from django.templatetags.static import static
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -15,6 +16,7 @@ DEBUG = config("DJANGO_DEBUG", default=True, cast=bool)
 ALLOWED_HOSTS = config("DJANGO_ALLOWED_HOSTS", default="localhost,127.0.0.1", cast=Csv())
 
 INSTALLED_APPS = [
+    "unfold",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -179,3 +181,43 @@ else:
 
 # --- Third-party API keys ---
 GEMINI_API_KEY = config("GEMINI_API_KEY", default="")
+
+# --- Admin theme (django-unfold), palette matches the Think & Make brand colors ---
+UNFOLD = {
+    "SITE_TITLE": "Think & Make Admin",
+    "SITE_HEADER": "Think & Make",
+    "SITE_SUBHEADER": "2026-27 Program Admin",
+    "SITE_SYMBOL": "auto_awesome",
+    # The website has no dark mode; force the admin to match instead of
+    # following the OS/browser preference (Unfold defaults to "auto", which
+    # made text colors meant for a dark background land on our light theme).
+    "THEME": "light",
+    "SHOW_HISTORY": True,
+    "SHOW_VIEW_ON_SITE": True,
+    "SHOW_BACK_BUTTON": True,
+    "STYLES": [
+        lambda request: static("admin/theme.css"),
+    ],
+    "SCRIPTS": [
+        lambda request: static("admin/force-light.js"),
+    ],
+    "COLORS": {
+        "primary": {
+            "50": "254 246 240",
+            "100": "253 232 219",
+            "200": "251 208 182",
+            "300": "247 173 130",
+            "400": "245 143 92",
+            "500": "242 112 60",
+            "600": "216 90 42",
+            "700": "184 72 31",
+            "800": "147 57 26",
+            "900": "120 47 23",
+            "950": "64 23 11",
+        },
+    },
+    "SIDEBAR": {
+        "show_search": True,
+        "show_all_applications": True,
+    },
+}

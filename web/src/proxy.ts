@@ -20,5 +20,7 @@ export default auth((req) => {
 });
 
 export const config = {
-  matcher: ["/((?!api|_next/static|_next/image|favicon.ico).*)"],
+  // admin/static/media bypass the NextAuth gate -- they're proxied straight
+  // to the Django admin (see next.config.ts), which has its own login/session.
+  matcher: ["/((?!api|admin|static|media|_next/static|_next/image|favicon.ico).*)"],
 };

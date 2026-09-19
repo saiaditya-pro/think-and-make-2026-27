@@ -23,6 +23,7 @@ Django==5.2.17
 django-cors-headers==4.9.0
 django-filter==26.1
 django-storages==1.14.4
+django-unfold==0.107.0
 djangorestframework==3.18.1
 djangorestframework_simplejwt==5.5.1
 et_xmlfile==2.0.0
