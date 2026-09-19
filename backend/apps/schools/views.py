@@ -5,6 +5,8 @@ from rest_framework.exceptions import PermissionDenied, ValidationError
 from rest_framework.response import Response
 
 from apps.core.permissions import ADMIN, IsAdminOrIIFStaffOrReadOnly, scope_queryset_to_role
+from apps.reports.models import SchoolProgress
+from apps.reports.serializers import SchoolProgressSerializer
 from apps.schools.models import School, SchoolGradeEnrollment, SchoolTeacher, SessionSchedule
 from apps.schools.serializers import (
     SchoolContactSubmitSerializer,
@@ -83,6 +85,17 @@ class SchoolViewSet(viewsets.ModelViewSet):
         SessionSchedule.objects.bulk_create(SessionSchedule(school=school, **schedule) for schedule in schedules)
 
         return Response(SchoolSerializer(school, context={"request": request}).data)
+
+    @action(detail=True, methods=["get"], url_path="progress")
+    def progress(self, request, pk=None):
+        """Single-school progress detail -- same row that appears in
+        ``/api/v1/reports/summary/``'s table, scoped by the same
+        ``get_queryset()`` role-check every other School action already uses.
+        ``get_or_create`` so a brand-new school never 404s here just because
+        the nightly reconciliation job hasn't run for it yet."""
+        school = self.get_object()
+        progress, _ = SchoolProgress.objects.get_or_create(school=school)
+        return Response(SchoolProgressSerializer(progress).data)
 
 
 class SchoolGradeEnrollmentViewSet(viewsets.ModelViewSet):

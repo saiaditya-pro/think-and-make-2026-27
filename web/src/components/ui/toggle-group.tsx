@@ -17,15 +17,24 @@ function ToggleGroup<Value extends string>({
   )
 }
 
+const TONE_PRESSED_CLASS = {
+  // Yes/No criteria toggles -- matches the mockup's teal-filled selected state.
+  teal: "data-pressed:border-brand-teal data-pressed:bg-brand-teal data-pressed:text-white data-pressed:hover:bg-brand-teal-dark",
+  // Picking one of several named options (grade, teacher) -- matches the mockup's coral-filled chips.
+  coral: "data-pressed:border-brand-coral data-pressed:bg-brand-coral data-pressed:text-white data-pressed:hover:bg-brand-coral-dark",
+}
+
 function ToggleGroupItem<Value extends string>({
   className,
+  tone = "teal",
   ...props
-}: TogglePrimitive.Props<Value>) {
+}: TogglePrimitive.Props<Value> & { tone?: "teal" | "coral" }) {
   return (
     <TogglePrimitive
       data-slot="toggle-group-item"
       className={cn(
-        "h-8 rounded-lg border border-input bg-transparent px-3 text-sm font-medium whitespace-nowrap transition-colors outline-none select-none hover:bg-muted focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50 data-pressed:border-primary data-pressed:bg-primary data-pressed:text-primary-foreground data-pressed:hover:bg-primary/80",
+        "h-8 rounded-lg border border-input bg-transparent px-3 text-sm font-medium whitespace-nowrap transition-colors outline-none select-none hover:bg-muted focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50",
+        TONE_PRESSED_CLASS[tone],
         className
       )}
       {...props}

@@ -2,7 +2,9 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
 
 import { apiFetch } from "@/lib/api";
-import type { Paginated, StudentHeadcount } from "@/lib/types";
+import type { MismatchFlag, Paginated, StudentHeadcount } from "@/lib/types";
+
+export type StudentHeadcountWithWarning = StudentHeadcount & { mismatch_warning: MismatchFlag | null };
 
 export function useHeadcountsForSchool(schoolId: string) {
   const { data: session } = useSession();
@@ -22,7 +24,7 @@ export function useCreateHeadcount(schoolId: string) {
 
   return useMutation({
     mutationFn: (payload: Record<string, unknown>) =>
-      apiFetch<StudentHeadcount>("/student-headcounts/", accessToken, {
+      apiFetch<StudentHeadcountWithWarning>("/student-headcounts/", accessToken, {
         method: "POST",
         body: JSON.stringify({ ...payload, school: Number(schoolId) }),
       }),

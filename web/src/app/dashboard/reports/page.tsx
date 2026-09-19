@@ -1,5 +1,9 @@
-import { ComingSoonPage } from "@/components/coming-soon";
+import { ReportsDashboard } from "./reports-dashboard";
 
 export default function Page() {
-  return <ComingSoonPage eyebrow="Think & Make 2026-27" title="School Dashboard" />;
+  return (
+    <main className="max-w-2xl mx-auto px-4 py-6">
+      <ReportsDashboard />
+    </main>
+  );
 }

@@ -24,7 +24,7 @@ export function SchoolsList() {
     <div className="space-y-3">
       {canEnroll && (
         <Link href="/dashboard/schools/enrollment" className="block">
-          <Button className="w-full bg-sky-500 hover:bg-sky-600">New / Continue Enrollment</Button>
+          <Button className="w-full bg-brand-coral hover:bg-brand-coral-dark">New / Continue Enrollment</Button>
         </Link>
       )}
       {isLoading && <p className="text-sm text-slate-500">Loading schools…</p>}

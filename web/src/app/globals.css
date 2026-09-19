@@ -5,6 +5,11 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
+  --color-brand-teal: var(--brand-teal);
+  --color-brand-teal-dark: var(--brand-teal-dark);
+  --color-brand-coral: var(--brand-coral);
+  --color-brand-coral-dark: var(--brand-coral-dark);
+  --color-brand-bg: var(--brand-bg);
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-sans);
@@ -49,6 +54,11 @@
 }
 
 :root {
+  --brand-teal: #0f4c5c;
+  --brand-teal-dark: #0b3a46;
+  --brand-coral: #f2703c;
+  --brand-coral-dark: #d85a2a;
+  --brand-bg: #faf5ee;
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
   --card: oklch(1 0 0);
@@ -73,14 +83,14 @@
   --chart-4: oklch(0.371 0 0);
   --chart-5: oklch(0.269 0 0);
   --radius: 0.625rem;
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+  --sidebar: var(--brand-teal);
+  --sidebar-foreground: oklch(1 0 0);
+  --sidebar-primary: var(--brand-coral);
+  --sidebar-primary-foreground: oklch(1 0 0);
+  --sidebar-accent: oklch(1 0 0 / 10%);
+  --sidebar-accent-foreground: oklch(1 0 0);
+  --sidebar-border: oklch(1 0 0 / 12%);
+  --sidebar-ring: var(--brand-coral);
 }
 
 .dark {

@@ -14,6 +14,7 @@ api_v1 = [
     path("", include("apps.observations.urls")),
     path("", include("apps.inquibuddy.urls")),
     path("", include("apps.files.urls")),
+    path("", include("apps.reports.urls")),
 ]
 
 urlpatterns = [

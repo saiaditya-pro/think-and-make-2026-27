@@ -1,7 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Loader2 } from "lucide-react";
+import { Camera, Loader2, MapPin, Package } from "lucide-react";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { useEffect, useRef } from "react";
@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import { z } from "zod";
 
 import { Field } from "@/components/forms/field";
+import { FormStepper } from "@/components/forms/form-stepper";
 import { usePartnerSchoolPicker } from "@/components/forms/partner-school-picker";
 import { SectionCard } from "@/components/forms/section-card";
 import { StatusBanner } from "@/components/forms/status-banner";
@@ -154,7 +155,7 @@ export function KitsForm() {
 
   return (
     <form onSubmit={onSubmit} className="space-y-4 pb-24">
-      <SectionCard id="who-and-where" badge="Visit" title="Who & where">
+      <SectionCard id="who-and-where" icon={MapPin} title="Who & where">
         {picker}
 
         {form1Missing && (
@@ -178,9 +179,11 @@ export function KitsForm() {
         )}
       </SectionCard>
 
+      <FormStepper schoolId={schoolId} current="form5" />
+
       {school && !form1Missing && (
         <>
-          <SectionCard id="section-delivery" badge="A" title="Delivery details">
+          <SectionCard id="section-delivery" icon={Package} title="Delivery details">
             <Field label="Delivered by" required error={errors.delivered_by?.message}>
               <Input {...form.register("delivered_by")} disabled={fieldsDisabled} />
             </Field>
@@ -219,7 +222,7 @@ export function KitsForm() {
             ))}
           </SectionCard>
 
-          <SectionCard id="section-photos" badge="B" title="Photos">
+          <SectionCard id="section-photos" icon={Camera} title="Photos">
             <Field label="Delivery proof photo">
               <div className="flex items-center gap-2">
                 <Button
@@ -273,7 +276,7 @@ export function KitsForm() {
         <div className="mx-auto flex w-full max-w-2xl gap-2">
           <Button
             type="submit"
-            className="flex-1 bg-sky-500 hover:bg-sky-600"
+            className="flex-1 bg-brand-coral hover:bg-brand-coral-dark"
             disabled={fieldsDisabled || saveDelivery.isPending}
           >
             {saveDelivery.isPending ? <Loader2 className="size-4 animate-spin" /> : "Submit"}

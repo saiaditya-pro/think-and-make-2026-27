@@ -52,7 +52,7 @@ function LoginForm() {
         <Input id="password" type="password" {...register("password")} />
         {errors.password && <p className="text-xs text-destructive">{errors.password.message}</p>}
       </div>
-      <Button type="submit" className="w-full bg-sky-500 hover:bg-sky-600" disabled={isSubmitting}>
+      <Button type="submit" className="w-full bg-brand-coral hover:bg-brand-coral-dark" disabled={isSubmitting}>
         {isSubmitting ? "Signing in…" : "Login"}
       </Button>
     </form>
@@ -65,7 +65,7 @@ export default function LoginPage() {
       <div className="w-full max-w-md mt-10 rounded-2xl overflow-hidden shadow-lg border border-slate-200 bg-white">
         <AppHeader className="rounded-t-2xl" />
         <CardContent className="pt-6 pb-8 px-6">
-          <p className="text-xs font-semibold tracking-wide text-sky-600 mb-1">INQUI-LAB · THINK & MAKE</p>
+          <p className="text-xs font-semibold tracking-wide text-brand-teal mb-1">INQUI-LAB · THINK & MAKE</p>
           <CardHeader className="px-0 pt-0 pb-4">
             <CardTitle className="text-base">THINK & MAKE 2026-27</CardTitle>
           </CardHeader>

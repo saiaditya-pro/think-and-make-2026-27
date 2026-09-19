@@ -1,7 +1,6 @@
 "use client";
 
 import { Loader2 } from "lucide-react";
-import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,6 +9,7 @@ import { usePartners, useSchoolDetail, useSchoolsByPartner } from "@/hooks/use-s
 import type { School } from "@/lib/types";
 
 import { Field } from "./field";
+import { useSchoolSelection } from "./school-selection-context";
 import { StatusBanner } from "./status-banner";
 
 export function usePartnerSchoolPicker({
@@ -27,8 +27,7 @@ export function usePartnerSchoolPicker({
   /** Called after the partner (and thus school selection) is reset — e.g. to reset a dependent form. */
   onPartnerChange?: () => void;
 }) {
-  const [partnerId, setPartnerId] = useState("");
-  const [schoolId, setSchoolId] = useState("");
+  const { partnerId, schoolId, setPartnerId, setSchoolId } = useSchoolSelection();
 
   const partnersQuery = usePartners();
   const schoolsQuery = useSchoolsByPartner(partnerId);

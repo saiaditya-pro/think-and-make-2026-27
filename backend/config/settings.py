@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     "apps.observations",
     "apps.inquibuddy",
     "apps.files",
+    "apps.reports",
 ]
 
 MIDDLEWARE = [
@@ -140,6 +141,18 @@ CELERY_ACCEPT_CONTENT = ["json"]
 CELERY_TASK_SERIALIZER = "json"
 CELERY_RESULT_SERIALIZER = "json"
 CELERY_TIMEZONE = TIME_ZONE
+
+# Static schedule for now (no django-celery-beat dependency) -- revisit only if
+# ops need to change the run time without a deploy. Requires running
+# `celery -A config beat` as its own process alongside the existing worker.
+from celery.schedules import crontab  # noqa: E402
+
+CELERY_BEAT_SCHEDULE = {
+    "reconcile-school-progress-nightly": {
+        "task": "apps.reports.tasks.reconcile_school_progress",
+        "schedule": crontab(hour=2, minute=0),
+    },
+}
 
 # --- File storage (Supabase Storage, S3-compatible) ---
 # Local dev falls back to Django's default filesystem storage so the app runs

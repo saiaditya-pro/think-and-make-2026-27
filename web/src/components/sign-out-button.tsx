@@ -9,8 +9,8 @@ export function SignOutButton() {
   return (
     <Button
       size="icon"
-      variant="secondary"
-      className="bg-white/10 hover:bg-white/20 text-white"
+      variant="ghost"
+      className="text-slate-500 hover:bg-slate-100 hover:text-slate-700"
       onClick={() => signOut({ callbackUrl: "/login" })}
       aria-label="Sign out"
     >

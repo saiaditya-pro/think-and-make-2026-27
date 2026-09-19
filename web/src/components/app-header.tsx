@@ -12,9 +12,9 @@ export function AppHeader({
   className?: string;
 }) {
   return (
-    <header className={cn("bg-[#0f4c5c] text-white px-6 py-4 flex items-center justify-between", className)}>
+    <header className={cn("bg-brand-teal text-white px-6 py-4 flex items-center justify-between", className)}>
       <div>
-        <p className="text-xs font-semibold tracking-wide text-sky-300">{eyebrow}</p>
+        <p className="text-xs font-semibold tracking-wide text-brand-coral">{eyebrow}</p>
         <h1 className="text-lg font-bold">{title}</h1>
       </div>
       {right}

@@ -1,7 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Loader2, Plus, Trash2 } from "lucide-react";
+import { CheckCircle2, LayoutGrid, Loader2, MapPin, Plus, Star, Trash2, Users } from "lucide-react";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { Controller, useFieldArray, useForm, useWatch } from "react-hook-form";
@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { z } from "zod";
 
 import { Field } from "@/components/forms/field";
+import { FormStepper } from "@/components/forms/form-stepper";
 import { usePartnerSchoolPicker } from "@/components/forms/partner-school-picker";
 import { SectionCard } from "@/components/forms/section-card";
 import { StatusBanner } from "@/components/forms/status-banner";
@@ -153,7 +154,7 @@ export function SLSelectionForm() {
 
   return (
     <form onSubmit={onSubmit} className="space-y-4 pb-24">
-      <SectionCard id="who-and-where" badge="Visit" title="Who & where">
+      <SectionCard id="who-and-where" icon={MapPin} title="Who & where">
         {picker}
 
         {form2Missing && (
@@ -171,8 +172,10 @@ export function SLSelectionForm() {
         )}
       </SectionCard>
 
+      <FormStepper schoolId={schoolId} current="form4" />
+
       {school && !form2Missing && (
-        <SectionCard id="section-grade" badge="A" title="Grade & section">
+        <SectionCard id="section-grade" icon={LayoutGrid} title="Grade & section">
           <Controller
             control={form.control}
             name="grade"
@@ -187,7 +190,7 @@ export function SLSelectionForm() {
                   disabled={fieldsDisabled}
                 >
                   {grades.map((g) => (
-                    <ToggleGroupItem key={g} value={String(g)}>
+                    <ToggleGroupItem key={g} value={String(g)} tone="coral">
                       Grade {g}
                     </ToggleGroupItem>
                   ))}
@@ -224,7 +227,7 @@ export function SLSelectionForm() {
 
       {school && !form2Missing && grade && section.trim() && !locked && (
         <>
-          <SectionCard id="section-teacher" badge="B" title="Teacher">
+          <SectionCard id="section-teacher" icon={Users} title="Teacher">
             {teachersForGrade.length > 0 && (
               <Controller
                 control={form.control}
@@ -255,7 +258,7 @@ export function SLSelectionForm() {
             </Field>
           </SectionCard>
 
-          <SectionCard id="section-sls" badge="C" title="Student Leaders">
+          <SectionCard id="section-sls" icon={Star} title="Student Leaders">
             {slFields.map((field, index) => (
               <div key={field.id} className="space-y-3 rounded-lg border p-3">
                 <div className="flex items-center justify-between">
@@ -360,7 +363,7 @@ export function SLSelectionForm() {
             </Button>
           </SectionCard>
 
-          <SectionCard id="section-ack" badge="D" title="Sign-off">
+          <SectionCard id="section-ack" icon={CheckCircle2} title="Sign-off">
             <Controller
               control={form.control}
               name="teacher_acknowledged"
@@ -381,7 +384,7 @@ export function SLSelectionForm() {
         <div className="mx-auto flex w-full max-w-2xl gap-2">
           <Button
             type="submit"
-            className="flex-1 bg-sky-500 hover:bg-sky-600"
+            className="flex-1 bg-brand-coral hover:bg-brand-coral-dark"
             disabled={fieldsDisabled || bulkSubmit.isPending || !section.trim()}
           >
             {bulkSubmit.isPending ? <Loader2 className="size-4 animate-spin" /> : "Submit"}

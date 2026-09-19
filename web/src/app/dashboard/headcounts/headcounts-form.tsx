@@ -1,7 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Loader2 } from "lucide-react";
+import { BarChart3, CheckCircle2, LayoutGrid, Loader2, MapPin } from "lucide-react";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { useEffect, useRef, useState } from "react";
@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import { z } from "zod";
 
 import { Field } from "@/components/forms/field";
+import { FormStepper } from "@/components/forms/form-stepper";
 import { usePartnerSchoolPicker } from "@/components/forms/partner-school-picker";
 import { SectionCard } from "@/components/forms/section-card";
 import { StatusBanner } from "@/components/forms/status-banner";
@@ -18,6 +19,8 @@ import { Input } from "@/components/ui/input";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { apiErrorMessage } from "@/lib/api-error";
 import { parseGradesOffered } from "@/lib/grades";
+import type { MismatchFlag } from "@/lib/types";
+import { cn } from "@/lib/utils";
 
 import { useCreateHeadcount, useHeadcountsForSchool, useUploadHeadcountFile } from "./use-headcounts-data";
 
@@ -49,6 +52,19 @@ const EMPTY_VALUES: FormValues = {
   teams_info_photo: null,
 };
 
+function CountBar({ label, value, max, colorClass }: { label: string; value: number; max: number; colorClass: string }) {
+  const pct = max > 0 ? Math.min(100, (value / max) * 100) : 0;
+  return (
+    <div className="flex items-center gap-2 text-xs">
+      <span className="w-16 shrink-0 text-slate-500">{label}</span>
+      <div className="h-1.5 flex-1 rounded-full bg-slate-100">
+        <div className={cn("h-full rounded-full", colorClass)} style={{ width: `${pct}%` }} />
+      </div>
+      <span className="w-6 shrink-0 text-right font-medium text-slate-700">{value}</span>
+    </div>
+  );
+}
+
 function buildPayload(values: FormValues) {
   return {
     grade: Number(values.grade),
@@ -67,6 +83,8 @@ export function HeadcountsForm() {
 
   const photoInputRef = useRef<HTMLInputElement>(null);
   const [photoInputKey, setPhotoInputKey] = useState(0);
+  const [mismatchWarning, setMismatchWarning] = useState<MismatchFlag | null>(null);
+  const [mismatchWarningSchoolId, setMismatchWarningSchoolId] = useState<string | null>(null);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(headcountSchema),
@@ -83,6 +101,14 @@ export function HeadcountsForm() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [schoolId]);
 
+  // Clear a previous section's warning as soon as a different school is
+  // selected -- adjusted during render (not an effect) per React's guidance
+  // for resetting state when a prop/derived value changes.
+  if (schoolId !== mismatchWarningSchoolId && mismatchWarning !== null) {
+    setMismatchWarningSchoolId(schoolId);
+    setMismatchWarning(null);
+  }
+
   const headcountsQuery = useHeadcountsForSchool(schoolId);
   const entries = headcountsQuery.data?.results ?? [];
   const createHeadcount = useCreateHeadcount(schoolId);
@@ -94,6 +120,12 @@ export function HeadcountsForm() {
   const errors = form.formState.errors;
   const photo = useWatch({ control: form.control, name: "teams_info_photo" });
   const selectedGrade = useWatch({ control: form.control, name: "grade" });
+  const selectedSection = useWatch({ control: form.control, name: "section" });
+  const liveStudents = Number(useWatch({ control: form.control, name: "total_students" })) || 0;
+  const liveTeams = Number(useWatch({ control: form.control, name: "total_teams" })) || 0;
+  const liveClusters = Number(useWatch({ control: form.control, name: "total_clusters" })) || 0;
+  const liveSl = Number(useWatch({ control: form.control, name: "total_sl" })) || 0;
+  const liveMax = Math.max(liveStudents, liveTeams, liveClusters, liveSl, 1);
 
   async function handlePhotoChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -109,7 +141,9 @@ export function HeadcountsForm() {
 
   const onSubmit = form.handleSubmit(async (values) => {
     try {
-      await createHeadcount.mutateAsync(buildPayload(values));
+      const created = await createHeadcount.mutateAsync(buildPayload(values));
+      setMismatchWarning(created.mismatch_warning);
+      setMismatchWarningSchoolId(schoolId);
       toast.success("Entry added.");
       form.reset({ ...EMPTY_VALUES, grade: values.grade });
       setPhotoInputKey((k) => k + 1);
@@ -120,7 +154,7 @@ export function HeadcountsForm() {
 
   return (
     <form onSubmit={onSubmit} className="space-y-4 pb-24">
-      <SectionCard id="who-and-where" badge="Visit" title="Who & where">
+      <SectionCard id="who-and-where" icon={MapPin} title="Who & where">
         {picker}
 
         {form2Missing && (
@@ -138,8 +172,10 @@ export function HeadcountsForm() {
         )}
       </SectionCard>
 
+      <FormStepper schoolId={schoolId} current="form3" />
+
       {school && !form2Missing && entries.length > 0 && (
-        <SectionCard id="section-tracker" badge="✓" title="Entries so far">
+        <SectionCard id="section-tracker" icon={CheckCircle2} title="Entries so far">
           <div className="space-y-1.5">
             {entries.map((entry) => (
               <div key={entry.id} className="flex items-center justify-between text-sm">
@@ -153,8 +189,26 @@ export function HeadcountsForm() {
         </SectionCard>
       )}
 
+      {school && !form2Missing && selectedGrade && selectedSection && (
+        <SectionCard id="section-live" icon={BarChart3} title={`Grade ${selectedGrade} · Section ${selectedSection} — recorded so far`}>
+          <div className="space-y-2">
+            <CountBar label="Students" value={liveStudents} max={liveMax} colorClass="bg-brand-teal" />
+            <CountBar label="Teams" value={liveTeams} max={liveMax} colorClass="bg-brand-coral" />
+            <CountBar label="Clusters" value={liveClusters} max={liveMax} colorClass="bg-purple-400" />
+            <CountBar label="SLs" value={liveSl} max={liveMax} colorClass="bg-amber-400" />
+          </div>
+        </SectionCard>
+      )}
+
+      {mismatchWarning && (
+        <StatusBanner
+          title="Heads up — SL count doesn't match Form 4."
+          body={`You entered ${mismatchWarning.total_sl} Student Leaders, but SL Selection has ${mismatchWarning.sl_selection_count} recorded for Grade ${mismatchWarning.grade} / Section ${mismatchWarning.section}.`}
+        />
+      )}
+
       {school && !form2Missing && (
-        <SectionCard id="section-entry" badge="A" title="New entry">
+        <SectionCard id="section-entry" icon={LayoutGrid} title="New entry">
           <Controller
             control={form.control}
             name="grade"
@@ -166,7 +220,7 @@ export function HeadcountsForm() {
                   disabled={fieldsDisabled}
                 >
                   {grades.map((g) => (
-                    <ToggleGroupItem key={g} value={String(g)}>
+                    <ToggleGroupItem key={g} value={String(g)} tone="coral">
                       Grade {g}
                     </ToggleGroupItem>
                   ))}
@@ -233,7 +287,7 @@ export function HeadcountsForm() {
         <div className="mx-auto flex w-full max-w-2xl gap-2">
           <Button
             type="submit"
-            className="flex-1 bg-sky-500 hover:bg-sky-600"
+            className="flex-1 bg-brand-coral hover:bg-brand-coral-dark"
             disabled={fieldsDisabled || createHeadcount.isPending || !selectedGrade}
           >
             {createHeadcount.isPending ? <Loader2 className="size-4 animate-spin" /> : "Add Entry"}

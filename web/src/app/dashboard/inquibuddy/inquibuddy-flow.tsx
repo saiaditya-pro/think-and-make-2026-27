@@ -105,7 +105,7 @@ export function InquibuddyFlow({ schoolId }: { schoolId: number }) {
           </Select>
         </div>
         <Button
-          className="w-full bg-sky-500 hover:bg-sky-600"
+          className="w-full bg-brand-coral hover:bg-brand-coral-dark"
           disabled={!grade || !section}
           onClick={() => setViewing(true)}
         >
@@ -137,7 +137,7 @@ export function InquibuddyFlow({ schoolId }: { schoolId: number }) {
         ))}
       </div>
 
-      <Button className="w-full bg-sky-500 hover:bg-sky-600" disabled={!anyPhotoReady || anyProcessing} onClick={generateAll}>
+      <Button className="w-full bg-brand-coral hover:bg-brand-coral-dark" disabled={!anyPhotoReady || anyProcessing} onClick={generateAll}>
         {anyProcessing ? "Generating AI feedback… this may take a few minutes." : "Generate Feedback for All Submitted Teams"}
       </Button>
 

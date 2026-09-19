@@ -127,6 +127,32 @@ export type InquibuddySubmission = {
   feedback_reports: FeedbackReport[];
 };
 
+export type FormStatus = "not_started" | "in_progress" | "complete";
+
+export type MismatchFlag = { grade: number; section: string; total_sl: number; sl_selection_count: number };
+
+export type SchoolProgress = {
+  school: number;
+  school_code: string;
+  school_name: string;
+  form1_status: FormStatus;
+  form2_status: FormStatus;
+  form3_pct: number;
+  form4_pct: number;
+  kit_status: FormStatus;
+  mismatch_flags: MismatchFlag[];
+  updated_at: string;
+};
+
+export type ReportsKpis = {
+  schools_enrolled: number;
+  forms_completed_pct: number;
+  kits_delivered: number;
+  active_student_leaders: number;
+};
+
+export type ReportsSummary = { kpis: ReportsKpis | null; schools: SchoolProgress[] };
+
 export type Cluster = {
   id: number;
   school: number;

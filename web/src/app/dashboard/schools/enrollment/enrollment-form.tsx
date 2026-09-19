@@ -1,7 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Loader2, MapPin } from "lucide-react";
+import { Camera, CheckCircle2, LayoutGrid, Loader2, MapPin, School as SchoolIcon, Users } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useEffect, useRef } from "react";
 import { Controller, useForm, useWatch } from "react-hook-form";
@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { z } from "zod";
 
 import { Field } from "@/components/forms/field";
+import { FormStepper } from "@/components/forms/form-stepper";
 import { usePartnerSchoolPicker } from "@/components/forms/partner-school-picker";
 import { SectionCard } from "@/components/forms/section-card";
 import { Button } from "@/components/ui/button";
@@ -274,7 +275,7 @@ export function EnrollmentForm() {
 
   return (
     <form onSubmit={onSubmit} className="space-y-4 pb-24">
-      <SectionCard id="who-and-where" badge="Visit" title="Who & where">
+      <SectionCard id="who-and-where" icon={MapPin} title="Who & where">
         {picker}
 
         <Field label="Visited by (IIF staff)" required error={errors.visited_by?.message}>
@@ -285,7 +286,9 @@ export function EnrollmentForm() {
         </Field>
       </SectionCard>
 
-      <SectionCard id="section-a" badge="A" title="School Location">
+      <FormStepper schoolId={schoolId} current="form1" />
+
+      <SectionCard id="section-a" icon={MapPin} title="School Location">
         <Field label="Enter School Location" required error={errors.location?.message}>
           <Input {...form.register("location")} disabled={fieldsDisabled} />
         </Field>
@@ -297,7 +300,7 @@ export function EnrollmentForm() {
         </Field>
       </SectionCard>
 
-      <SectionCard id="section-b" badge="B" title="Principal details">
+      <SectionCard id="section-b" icon={Users} title="Principal details">
         <Field label="Enter Principal — full name" required error={errors.principal_name?.message}>
           <Input {...form.register("principal_name")} disabled={fieldsDisabled} />
         </Field>
@@ -309,7 +312,7 @@ export function EnrollmentForm() {
         </Field>
       </SectionCard>
 
-      <SectionCard id="section-c" badge="C" title="School program profile">
+      <SectionCard id="section-c" icon={LayoutGrid} title="School program profile">
         <Controller
           control={form.control}
           name="gender_type"
@@ -379,7 +382,7 @@ export function EnrollmentForm() {
                 disabled={fieldsDisabled}
               >
                 {GRADE_OPTIONS.map((g) => (
-                  <ToggleGroupItem key={g} value={String(g)}>
+                  <ToggleGroupItem key={g} value={String(g)} tone="coral">
                     Grade {g}
                   </ToggleGroupItem>
                 ))}
@@ -392,7 +395,7 @@ export function EnrollmentForm() {
         </Field>
       </SectionCard>
 
-      <SectionCard id="section-d" badge="D" title="School Infrastructure">
+      <SectionCard id="section-d" icon={SchoolIcon} title="School Infrastructure">
         <Controller
           control={form.control}
           name="lab_room"
@@ -447,7 +450,7 @@ export function EnrollmentForm() {
         />
       </SectionCard>
 
-      <SectionCard id="section-h" badge="H" title="Photos & Gmaps">
+      <SectionCard id="section-h" icon={Camera} title="Photos & Gmaps">
         <Field label="Upload School photo">
           <div className="flex items-center gap-2">
             <Button type="button" variant="outline" size="sm" disabled={fieldsDisabled || uploadPhoto.isPending} onClick={() => photoInputRef.current?.click()}>
@@ -482,7 +485,7 @@ export function EnrollmentForm() {
         />
       </SectionCard>
 
-      <SectionCard id="section-i" badge="I" title="Notes & sign-off">
+      <SectionCard id="section-i" icon={CheckCircle2} title="Notes & sign-off">
         <Field label="Open observations / concerns">
           <Textarea {...form.register("observations")} disabled={fieldsDisabled} />
         </Field>
@@ -514,7 +517,7 @@ export function EnrollmentForm() {
           >
             {saveDraft.isPending ? <Loader2 className="size-4 animate-spin" /> : "Save draft"}
           </Button>
-          <Button type="submit" className="flex-1 bg-sky-500 hover:bg-sky-600" disabled={fieldsDisabled || submitForm1.isPending}>
+          <Button type="submit" className="flex-1 bg-brand-coral hover:bg-brand-coral-dark" disabled={fieldsDisabled || submitForm1.isPending}>
             {submitForm1.isPending ? <Loader2 className="size-4 animate-spin" /> : "Submit"}
           </Button>
         </div>

@@ -1,25 +1,26 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Loader2, Plus, Trash2 } from "lucide-react";
+import { CalendarDays, CheckCircle2, Loader2, MapPin, Plus, Trash2, Users } from "lucide-react";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { useEffect } from "react";
-import { Controller, useFieldArray, useForm } from "react-hook-form";
+import { Controller, useFieldArray, useForm, useWatch, type Control } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
 
 import { Field } from "@/components/forms/field";
+import { FormStepper } from "@/components/forms/form-stepper";
 import { usePartnerSchoolPicker } from "@/components/forms/partner-school-picker";
 import { SectionCard } from "@/components/forms/section-card";
 import { StatusBanner } from "@/components/forms/status-banner";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { apiErrorMessage } from "@/lib/api-error";
 import { parseGradesOffered } from "@/lib/grades";
 import type { School } from "@/lib/types";
+import { cn } from "@/lib/utils";
 
 import { useSubmitForm2 } from "./use-contact-info-data";
 
@@ -79,6 +80,124 @@ function schoolToFormValues(school: School): FormValues {
   };
 }
 
+function initialsOf(name: string) {
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  if (parts.length === 0) return "—";
+  return (parts[0][0] + (parts[1]?.[0] ?? "")).toUpperCase();
+}
+
+function TeacherAvatar({ name }: { name: string }) {
+  return (
+    <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-brand-teal/10 text-xs font-semibold text-brand-teal">
+      {initialsOf(name)}
+    </span>
+  );
+}
+
+const ROW_TONE = [
+  { bg: "bg-brand-teal/10", text: "text-brand-teal" },
+  { bg: "bg-brand-coral/10", text: "text-brand-coral" },
+];
+
+function ScheduleRow({
+  grade,
+  index,
+  control,
+  disabled,
+}: {
+  grade: number;
+  index: number;
+  control: Control<FormValues>;
+  disabled: boolean;
+}) {
+  const tone = ROW_TONE[index % ROW_TONE.length];
+
+  return (
+    <Controller
+      control={control}
+      name={`schedules.${index}.day_of_week`}
+      render={({ field: dayField }) => (
+        <Controller
+          control={control}
+          name={`schedules.${index}.time`}
+          render={({ field: timeField }) => (
+            <tr className="border-t">
+              <td className="whitespace-nowrap px-2 py-2 text-xs font-medium text-slate-700">Grade {grade}</td>
+              {DAY_OPTIONS.map((d) => {
+                const selected = dayField.value === d.value;
+                return (
+                  <td key={d.value} className="p-1 text-center">
+                    {selected ? (
+                      <input
+                        type="time"
+                        value={timeField.value}
+                        onChange={(e) => timeField.onChange(e.target.value)}
+                        disabled={disabled}
+                        className={cn(
+                          "w-full rounded-md border-0 px-1 py-1 text-center text-[11px] font-medium outline-none",
+                          tone.bg,
+                          tone.text,
+                        )}
+                      />
+                    ) : (
+                      <button
+                        type="button"
+                        disabled={disabled}
+                        onClick={() => dayField.onChange(d.value)}
+                        className="flex h-7 w-full items-center justify-center rounded-md text-slate-300 hover:bg-slate-50 disabled:pointer-events-none"
+                        aria-label={`Set Grade ${grade}'s session to ${d.label}`}
+                      >
+                        ·
+                      </button>
+                    )}
+                  </td>
+                );
+              })}
+            </tr>
+          )}
+        />
+      )}
+    />
+  );
+}
+
+function ScheduleGrid({
+  grades,
+  control,
+  disabled,
+  hasError,
+}: {
+  grades: number[];
+  control: Control<FormValues>;
+  disabled: boolean;
+  hasError: boolean;
+}) {
+  return (
+    <div className="space-y-1.5">
+      <div className="overflow-x-auto rounded-lg border">
+        <table className="w-full min-w-[420px] text-xs">
+          <thead>
+            <tr className="text-left text-[10px] font-medium uppercase tracking-wide text-slate-400">
+              <th className="px-2 py-2">Grade</th>
+              {DAY_OPTIONS.map((d) => (
+                <th key={d.value} className="px-1 py-2 text-center">
+                  {d.label.slice(0, 3)}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {grades.map((g, index) => (
+              <ScheduleRow key={g} grade={g} index={index} control={control} disabled={disabled} />
+            ))}
+          </tbody>
+        </table>
+      </div>
+      {hasError && <p className="text-xs text-destructive">Select a day and time for every grade.</p>}
+    </div>
+  );
+}
+
 function buildPayload(values: FormValues) {
   return {
     iif_poc: values.iif_poc,
@@ -124,6 +243,7 @@ export function ContactInfoForm() {
     remove: removeTeacher,
   } = useFieldArray({ control: form.control, name: "teachers" });
 
+  const watchedTeachers = useWatch({ control: form.control, name: "teachers" });
   const errors = form.formState.errors;
   const grades = parseGradesOffered(school);
   const form1Missing = !!school && !school.form1_submitted;
@@ -140,7 +260,7 @@ export function ContactInfoForm() {
 
   return (
     <form onSubmit={onSubmit} className="space-y-4 pb-24">
-      <SectionCard id="who-and-where" badge="Visit" title="Who & where">
+      <SectionCard id="who-and-where" icon={MapPin} title="Who & where">
         {picker}
 
         {form1Missing && (
@@ -155,9 +275,11 @@ export function ContactInfoForm() {
         )}
       </SectionCard>
 
+      <FormStepper schoolId={schoolId} current="form2" />
+
       {school && !form1Missing && (
         <>
-          <SectionCard id="section-prefill" badge="1" title="Prefilled from Form 1">
+          <SectionCard id="section-prefill" icon={CheckCircle2} title="Prefilled from Form 1">
             <Field label="Google Maps location">
               <Input readOnly value={school.maps_link} className="bg-muted/50" />
             </Field>
@@ -169,7 +291,7 @@ export function ContactInfoForm() {
             </Field>
           </SectionCard>
 
-          <SectionCard id="section-teachers" badge="2" title="Teachers">
+          <SectionCard id="section-teachers" icon={Users} title="Teachers">
             <Field label="IIF Point of Contact" required error={errors.iif_poc?.message}>
               <Input {...form.register("iif_poc")} disabled={fieldsDisabled} />
             </Field>
@@ -177,7 +299,12 @@ export function ContactInfoForm() {
             {teacherFields.map((field, index) => (
               <div key={field.id} className="space-y-3 rounded-lg border p-3">
                 <div className="flex items-center justify-between">
-                  <p className="text-sm font-medium text-slate-700">Teacher {index + 1}</p>
+                  <div className="flex items-center gap-2">
+                    <TeacherAvatar name={watchedTeachers?.[index]?.name ?? ""} />
+                    <p className="text-sm font-medium text-slate-700">
+                      {watchedTeachers?.[index]?.name || `Teacher ${index + 1}`}
+                    </p>
+                  </div>
                   {teacherFields.length > 1 && (
                     <Button
                       type="button"
@@ -212,7 +339,7 @@ export function ContactInfoForm() {
                         disabled={fieldsDisabled}
                       >
                         {grades.map((g) => (
-                          <ToggleGroupItem key={g} value={String(g)}>
+                          <ToggleGroupItem key={g} value={String(g)} tone="coral">
                             Grade {g}
                           </ToggleGroupItem>
                         ))}
@@ -234,40 +361,13 @@ export function ContactInfoForm() {
             </Button>
           </SectionCard>
 
-          <SectionCard id="section-schedule" badge="3" title="Session schedule">
-            {grades.map((g, index) => (
-              <div key={g} className="space-y-3 rounded-lg border p-3">
-                <p className="text-sm font-medium text-slate-700">Grade {g}</p>
-                <Controller
-                  control={form.control}
-                  name={`schedules.${index}.day_of_week`}
-                  render={({ field }) => (
-                    <Field label="Day" required error={errors.schedules?.[index]?.day_of_week?.message}>
-                      <Select
-                        items={DAY_OPTIONS}
-                        value={field.value}
-                        onValueChange={(v) => field.onChange(v ?? "")}
-                        disabled={fieldsDisabled}
-                      >
-                        <SelectTrigger className="w-full">
-                          <SelectValue placeholder="Select..." />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {DAY_OPTIONS.map((o) => (
-                            <SelectItem key={o.value} value={o.value}>
-                              {o.label}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </Field>
-                  )}
-                />
-                <Field label="Time" required error={errors.schedules?.[index]?.time?.message}>
-                  <Input type="time" {...form.register(`schedules.${index}.time`)} disabled={fieldsDisabled} />
-                </Field>
-              </div>
-            ))}
+          <SectionCard id="section-schedule" icon={CalendarDays} title="Weekly session schedule">
+            <ScheduleGrid
+              grades={grades}
+              control={form.control}
+              disabled={fieldsDisabled}
+              hasError={!!errors.schedules}
+            />
           </SectionCard>
         </>
       )}
@@ -276,7 +376,7 @@ export function ContactInfoForm() {
         <div className="mx-auto flex w-full max-w-2xl gap-2">
           <Button
             type="submit"
-            className="flex-1 bg-sky-500 hover:bg-sky-600"
+            className="flex-1 bg-brand-coral hover:bg-brand-coral-dark"
             disabled={fieldsDisabled || submitForm2.isPending}
           >
             {submitForm2.isPending ? <Loader2 className="size-4 animate-spin" /> : "Submit"}
