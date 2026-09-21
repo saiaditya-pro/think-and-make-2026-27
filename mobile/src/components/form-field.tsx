@@ -1,5 +1,7 @@
 import { StyleSheet, Text, View } from "react-native";
 
+import { colors, spacing } from "@/lib/theme";
+
 export function FormField({
   label,
   required,
@@ -26,9 +28,9 @@ export function FormField({
 }
 
 const styles = StyleSheet.create({
-  field: { marginBottom: 16 },
+  field: { marginBottom: spacing.lg },
   label: { fontSize: 13, fontWeight: "600", color: "#334155", marginBottom: 6 },
-  required: { color: "#dc2626" },
-  hint: { fontSize: 11, color: "#94a3b8", marginBottom: 6, marginTop: -4 },
-  error: { fontSize: 11, color: "#dc2626", marginTop: 4 },
+  required: { color: colors.destructive },
+  hint: { fontSize: 11, color: colors.textFaint, marginBottom: 6, marginTop: -4 },
+  error: { fontSize: 11, color: colors.destructive, marginTop: 4 },
 });

@@ -8,6 +8,7 @@ import { Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "rea
 import { ScreenHeader } from "@/components/screen-header";
 import { TeamCard } from "@/components/team-card";
 import { useAuth } from "@/lib/auth-context";
+import { colors, radius, spacing } from "@/lib/theme";
 import type { InquibuddySubmission, Paginated } from "@/lib/types";
 
 export default function TeamsScreen() {
@@ -92,11 +93,11 @@ export default function TeamsScreen() {
 }
 
 const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: "#f8fafc" },
-  body: { padding: 16, gap: 12 },
-  button: { backgroundColor: "#0ea5e9", borderRadius: 10, padding: 14, alignItems: "center", marginTop: 8 },
+  screen: { flex: 1, backgroundColor: colors.brandBg },
+  body: { padding: spacing.lg, gap: spacing.md },
+  button: { backgroundColor: colors.brandCoral, borderRadius: radius.md, padding: 14, alignItems: "center", marginTop: spacing.sm },
   buttonDisabled: { opacity: 0.4 },
   buttonText: { color: "#fff", fontWeight: "700", fontSize: 14, textAlign: "center" },
-  buttonOutline: { borderWidth: 1, borderColor: "#34d399", borderRadius: 10, padding: 14, alignItems: "center" },
+  buttonOutline: { borderWidth: 1, borderColor: "#34d399", borderRadius: radius.md, padding: 14, alignItems: "center" },
   buttonOutlineText: { color: "#047857", fontWeight: "700", fontSize: 14 },
 });

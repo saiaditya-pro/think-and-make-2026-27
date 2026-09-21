@@ -3,7 +3,7 @@ import { useRouter } from "expo-router";
 import { Trash2 } from "lucide-react-native";
 import { useEffect } from "react";
 import { Controller, useFieldArray, useForm } from "react-hook-form";
-import { ActivityIndicator, Alert, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { ActivityIndicator, Alert, ScrollView, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { z } from "zod";
 
 import { ChipMultiselect } from "@/components/chip-multiselect";
@@ -14,8 +14,11 @@ import { usePartnerSchoolPicker } from "@/components/forms/use-partner-school-pi
 import { LabeledSelect } from "@/components/labeled-select";
 import { ScreenHeader } from "@/components/screen-header";
 import { useSubmitForm2 } from "@/features/contact-info/use-contact-info-data";
+import { useOpenDrawer } from "@/hooks/use-open-drawer";
 import { apiErrorMessage } from "@/lib/api-error";
 import { useAuth } from "@/lib/auth-context";
+import { formScreenStyles as fs } from "@/lib/form-screen-styles";
+import { colors } from "@/lib/theme";
 import { parseGradesOffered } from "@/lib/grades";
 import type { School } from "@/lib/types";
 
@@ -95,6 +98,7 @@ export default function ContactInfoScreen() {
   const { auth } = useAuth();
   const isAdmin = auth?.user.role === "admin";
   const router = useRouter();
+  const openDrawer = useOpenDrawer();
 
   const form = useForm<FormValues>({
     resolver: zodResolver(contactInfoSchema),
@@ -136,17 +140,17 @@ export default function ContactInfoScreen() {
   });
 
   return (
-    <View style={styles.screen}>
-      <ScreenHeader eyebrow="THINK & MAKE 2026-27" title="Schools Contact Info — Form 2" showBack />
-      <ScrollView contentContainerStyle={styles.body}>
+    <View style={fs.screen}>
+      <ScreenHeader eyebrow="THINK & MAKE 2026-27" title="Schools Contact Info — Form 2" onMenuPress={openDrawer} />
+      <ScrollView contentContainerStyle={fs.body}>
         <SectionCard badge="Visit" title="Who & where">
           {picker}
           {form1Missing && (
             <StatusBanner
               title="School Enrollment (Form 1) must be submitted first."
               action={
-                <TouchableOpacity style={styles.linkButton} onPress={() => router.push("/(app)/schools/enrollment")}>
-                  <Text style={styles.linkButtonText}>Go to Form 1</Text>
+                <TouchableOpacity style={fs.linkButton} onPress={() => router.push("/(app)/schools/enrollment")}>
+                  <Text style={fs.linkButtonText}>Go to Form 1</Text>
                 </TouchableOpacity>
               }
             />
@@ -157,20 +161,20 @@ export default function ContactInfoScreen() {
           <>
             <SectionCard badge="1" title="Prefilled from Form 1">
               <FormField label="Google Maps location">
-                <TextInput editable={false} value={school.maps_link} style={[styles.input, styles.inputDisabled]} />
+                <TextInput editable={false} value={school.maps_link} style={[fs.input, fs.inputDisabled]} />
               </FormField>
               <FormField label="Principal">
                 <TextInput
                   editable={false}
                   value={`${school.principal_name} · ${school.principal_phone}`}
-                  style={[styles.input, styles.inputDisabled]}
+                  style={[fs.input, fs.inputDisabled]}
                 />
               </FormField>
               <FormField label="Grades participating">
                 <TextInput
                   editable={false}
                   value={grades.map((g) => `Grade ${g}`).join(", ")}
-                  style={[styles.input, styles.inputDisabled]}
+                  style={[fs.input, fs.inputDisabled]}
                 />
               </FormField>
             </SectionCard>
@@ -185,19 +189,19 @@ export default function ContactInfoScreen() {
                       editable={!fieldsDisabled}
                       value={field.value}
                       onChangeText={field.onChange}
-                      style={[styles.input, fieldsDisabled && styles.inputDisabled]}
+                      style={[fs.input, fieldsDisabled && fs.inputDisabled]}
                     />
                   )}
                 />
               </FormField>
 
               {teacherFields.map((field, index) => (
-                <View key={field.id} style={styles.subCard}>
-                  <View style={styles.subCardHeader}>
-                    <Text style={styles.subCardTitle}>Teacher {index + 1}</Text>
+                <View key={field.id} style={fs.subCard}>
+                  <View style={fs.subCardHeader}>
+                    <Text style={fs.subCardTitle}>Teacher {index + 1}</Text>
                     {teacherFields.length > 1 && (
                       <TouchableOpacity disabled={fieldsDisabled} onPress={() => removeTeacher(index)}>
-                        <Trash2 size={16} color="#dc2626" />
+                        <Trash2 size={16} color={colors.destructive} />
                       </TouchableOpacity>
                     )}
                   </View>
@@ -210,7 +214,7 @@ export default function ContactInfoScreen() {
                           editable={!fieldsDisabled}
                           value={f.value}
                           onChangeText={f.onChange}
-                          style={[styles.input, fieldsDisabled && styles.inputDisabled]}
+                          style={[fs.input, fieldsDisabled && fs.inputDisabled]}
                         />
                       )}
                     />
@@ -226,8 +230,8 @@ export default function ContactInfoScreen() {
                           onChangeText={f.onChange}
                           keyboardType="phone-pad"
                           placeholder="10-digit mobile"
-                          placeholderTextColor="#94a3b8"
-                          style={[styles.input, fieldsDisabled && styles.inputDisabled]}
+                          placeholderTextColor={colors.textFaint}
+                          style={[fs.input, fieldsDisabled && fs.inputDisabled]}
                         />
                       )}
                     />
@@ -245,18 +249,18 @@ export default function ContactInfoScreen() {
               ))}
 
               <TouchableOpacity
-                style={[styles.outlineButton, fieldsDisabled && styles.disabled]}
+                style={[fs.outlineButton, fieldsDisabled && fs.disabled]}
                 disabled={fieldsDisabled}
                 onPress={() => appendTeacher({ name: "", phone: "", grades_taught: [] })}
               >
-                <Text style={styles.outlineButtonText}>+ Add another teacher</Text>
+                <Text style={fs.outlineButtonText}>+ Add another teacher</Text>
               </TouchableOpacity>
             </SectionCard>
 
             <SectionCard badge="3" title="Session schedule">
               {grades.map((g, index) => (
-                <View key={g} style={styles.subCard}>
-                  <Text style={styles.subCardTitle}>Grade {g}</Text>
+                <View key={g} style={fs.subCard}>
+                  <Text style={fs.subCardTitle}>Grade {g}</Text>
                   <FormField label="Day" required error={errors.schedules?.[index]?.day_of_week?.message}>
                     <Controller
                       control={form.control}
@@ -282,8 +286,8 @@ export default function ContactInfoScreen() {
                           value={f.value}
                           onChangeText={f.onChange}
                           placeholder="HH:MM"
-                          placeholderTextColor="#94a3b8"
-                          style={[styles.input, fieldsDisabled && styles.inputDisabled]}
+                          placeholderTextColor={colors.textFaint}
+                          style={[fs.input, fieldsDisabled && fs.inputDisabled]}
                         />
                       )}
                     />
@@ -297,61 +301,19 @@ export default function ContactInfoScreen() {
         <View style={{ height: 80 }} />
       </ScrollView>
 
-      <View style={styles.footer}>
+      <View style={fs.footer}>
         <TouchableOpacity
-          style={[styles.footerButton, styles.submitButton, (fieldsDisabled || submitForm2.isPending) && styles.disabled]}
+          style={[fs.footerButton, fs.submitButton, (fieldsDisabled || submitForm2.isPending) && fs.disabled]}
           disabled={fieldsDisabled || submitForm2.isPending}
           onPress={onSubmit}
         >
           {submitForm2.isPending ? (
             <ActivityIndicator size="small" color="#fff" />
           ) : (
-            <Text style={styles.submitButtonText}>Submit</Text>
+            <Text style={fs.submitButtonText}>Submit</Text>
           )}
         </TouchableOpacity>
       </View>
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: "#f8fafc" },
-  body: { padding: 16, gap: 12 },
-  input: {
-    borderWidth: 1,
-    borderColor: "#e2e8f0",
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    fontSize: 14,
-    color: "#0f172a",
-    backgroundColor: "#fff",
-  },
-  inputDisabled: { backgroundColor: "#f1f5f9", color: "#94a3b8" },
-  subCard: { borderWidth: 1, borderColor: "#e2e8f0", borderRadius: 10, padding: 12, gap: 4, marginTop: 4 },
-  subCardHeader: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
-  subCardTitle: { fontSize: 13, fontWeight: "700", color: "#334155", marginBottom: 4 },
-  outlineButton: {
-    borderWidth: 1,
-    borderColor: "#cbd5e1",
-    borderRadius: 8,
-    paddingVertical: 10,
-    alignItems: "center",
-    marginTop: 8,
-  },
-  outlineButtonText: { fontSize: 13, fontWeight: "700", color: "#334155" },
-  disabled: { opacity: 0.4 },
-  linkButton: {
-    backgroundColor: "#fff",
-    borderWidth: 1,
-    borderColor: "#f59e0b",
-    borderRadius: 8,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-  },
-  linkButtonText: { fontSize: 12, fontWeight: "700", color: "#92400e" },
-  footer: { flexDirection: "row", gap: 8, padding: 12, borderTopWidth: 1, borderTopColor: "#e2e8f0", backgroundColor: "#fff" },
-  footerButton: { flex: 1, borderRadius: 10, paddingVertical: 14, alignItems: "center" },
-  submitButton: { backgroundColor: "#0ea5e9" },
-  submitButtonText: { color: "#fff", fontWeight: "700", fontSize: 14 },
-});

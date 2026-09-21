@@ -1,5 +1,7 @@
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
+import { colors, radius, spacing } from "@/lib/theme";
+
 export function SegmentedField({
   options,
   value,
@@ -31,16 +33,16 @@ export function SegmentedField({
 }
 
 const styles = StyleSheet.create({
-  row: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
+  row: { flexDirection: "row", flexWrap: "wrap", gap: spacing.sm },
   segment: {
     borderWidth: 1,
-    borderColor: "#e2e8f0",
-    borderRadius: 8,
+    borderColor: colors.border,
+    borderRadius: radius.sm,
     paddingHorizontal: 14,
-    paddingVertical: 8,
+    paddingVertical: spacing.sm,
     backgroundColor: "#fff",
   },
-  segmentActive: { backgroundColor: "#0ea5e9", borderColor: "#0ea5e9" },
+  segmentActive: { backgroundColor: colors.brandTeal, borderColor: colors.brandTeal },
   segmentText: { color: "#334155", fontSize: 13, fontWeight: "600" },
   segmentTextActive: { color: "#fff" },
   disabled: { opacity: 0.4 },

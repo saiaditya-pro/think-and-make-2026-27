@@ -1,15 +1,21 @@
 import { useRouter } from "expo-router";
+import { Menu } from "lucide-react-native";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+
+import { colors, spacing } from "@/lib/theme";
 
 export function ScreenHeader({
   eyebrow,
   title,
   showBack,
+  onMenuPress,
   right,
 }: {
   eyebrow: string;
   title: string;
   showBack?: boolean;
+  /** Renders a hamburger button that opens the drawer nav — used on top-level (non-nested) screens. */
+  onMenuPress?: () => void;
   right?: React.ReactNode;
 }) {
   const router = useRouter();
@@ -19,6 +25,11 @@ export function ScreenHeader({
         {showBack && (
           <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
             <Text style={styles.backText}>{"←"}</Text>
+          </TouchableOpacity>
+        )}
+        {onMenuPress && (
+          <TouchableOpacity onPress={onMenuPress} style={styles.backButton}>
+            <Menu size={18} color="#fff" />
           </TouchableOpacity>
         )}
         <View>
@@ -33,15 +44,15 @@ export function ScreenHeader({
 
 const styles = StyleSheet.create({
   header: {
-    backgroundColor: "#0f4c5c",
-    paddingHorizontal: 16,
+    backgroundColor: colors.brandTeal,
+    paddingHorizontal: spacing.lg,
     paddingTop: 56,
-    paddingBottom: 16,
+    paddingBottom: spacing.lg,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
   },
-  left: { flexDirection: "row", alignItems: "center", gap: 12 },
+  left: { flexDirection: "row", alignItems: "center", gap: spacing.md },
   backButton: {
     width: 32,
     height: 32,
@@ -51,6 +62,6 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   backText: { color: "#fff", fontSize: 16 },
-  eyebrow: { color: "#7dd3fc", fontSize: 11, fontWeight: "600", letterSpacing: 0.5 },
+  eyebrow: { color: "rgba(255,255,255,0.65)", fontSize: 11, fontWeight: "600", letterSpacing: 0.5 },
   title: { color: "#fff", fontSize: 16, fontWeight: "700", marginTop: 2 },
 });

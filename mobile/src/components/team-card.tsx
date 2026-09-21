@@ -7,6 +7,7 @@ import { useState } from "react";
 import { ActivityIndicator, Alert, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 import { useAuth } from "@/lib/auth-context";
+import { colors, radius, spacing } from "@/lib/theme";
 import type { InquibuddySubmission } from "@/lib/types";
 
 const STATUS_LABEL: Record<InquibuddySubmission["status"], string> = {
@@ -147,28 +148,28 @@ export function TeamCard({ submission, onChanged }: { submission: InquibuddySubm
 const styles = StyleSheet.create({
   card: {
     backgroundColor: "#fff",
-    borderRadius: 14,
-    padding: 14,
+    borderRadius: radius.lg,
+    padding: spacing.lg - 2,
     borderWidth: 1,
-    borderColor: "#e2e8f0",
+    borderColor: colors.border,
   },
   headerRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start" },
-  teamCode: { fontSize: 15, fontWeight: "700", color: "#0f172a" },
-  slName: { fontSize: 12, color: "#64748b", marginTop: 2 },
-  badge: { backgroundColor: "#f1f5f9", borderRadius: 999, paddingHorizontal: 10, paddingVertical: 4 },
+  teamCode: { fontSize: 15, fontWeight: "700", color: colors.text },
+  slName: { fontSize: 12, color: colors.textMuted, marginTop: 2 },
+  badge: { backgroundColor: "#f1f5f9", borderRadius: radius.pill, paddingHorizontal: spacing.md, paddingVertical: 4 },
   badgeText: { fontSize: 11, fontWeight: "600", color: "#475569" },
-  sectionLabel: { fontSize: 11, fontWeight: "600", color: "#64748b", marginTop: 12, marginBottom: 6 },
-  row: { flexDirection: "row", gap: 8 },
+  sectionLabel: { fontSize: 11, fontWeight: "600", color: colors.textMuted, marginTop: spacing.md, marginBottom: spacing.sm },
+  row: { flexDirection: "row", gap: spacing.sm },
   smallButton: {
     flex: 1,
     borderWidth: 1,
     borderColor: "#cbd5e1",
-    borderRadius: 8,
-    paddingVertical: 8,
+    borderRadius: radius.sm,
+    paddingVertical: spacing.sm,
     alignItems: "center",
   },
   smallButtonDone: { borderColor: "#34d399", backgroundColor: "#ecfdf5" },
   smallButtonText: { fontSize: 12, fontWeight: "600", color: "#334155" },
-  outlineButton: { borderWidth: 1, borderColor: "#cbd5e1", borderRadius: 8, paddingVertical: 10, alignItems: "center", marginTop: 8 },
+  outlineButton: { borderWidth: 1, borderColor: "#cbd5e1", borderRadius: radius.sm, paddingVertical: 10, alignItems: "center", marginTop: spacing.sm },
   outlineButtonText: { fontSize: 13, fontWeight: "700", color: "#334155" },
 });

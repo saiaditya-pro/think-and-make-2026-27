@@ -1,5 +1,7 @@
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
+import { colors, radius, spacing } from "@/lib/theme";
+
 export function ChipMultiselect({
   options,
   value,
@@ -36,16 +38,16 @@ export function ChipMultiselect({
 }
 
 const styles = StyleSheet.create({
-  row: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
+  row: { flexDirection: "row", flexWrap: "wrap", gap: spacing.sm },
   chip: {
     borderWidth: 1,
-    borderColor: "#e2e8f0",
-    borderRadius: 999,
+    borderColor: colors.border,
+    borderRadius: radius.pill,
     paddingHorizontal: 14,
-    paddingVertical: 8,
+    paddingVertical: spacing.sm,
     backgroundColor: "#fff",
   },
-  chipActive: { backgroundColor: "#0ea5e9", borderColor: "#0ea5e9" },
+  chipActive: { backgroundColor: colors.brandCoral, borderColor: colors.brandCoral },
   chipText: { color: "#334155", fontSize: 13, fontWeight: "600" },
   chipTextActive: { color: "#fff" },
   disabled: { opacity: 0.4 },

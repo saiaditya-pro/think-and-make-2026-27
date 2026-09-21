@@ -6,6 +6,8 @@ import { LabeledSelect } from "@/components/labeled-select";
 import { usePartners, useSchoolDetail, useSchoolsByPartner } from "@/hooks/use-school-lookup";
 import type { School } from "@/lib/types";
 
+import { colors, radius, spacing } from "@/lib/theme";
+
 import { StatusBanner } from "./status-banner";
 
 export function usePartnerSchoolPicker({
@@ -107,14 +109,14 @@ export function usePartnerSchoolPicker({
 const styles = StyleSheet.create({
   readOnlyInput: {
     borderWidth: 1,
-    borderColor: "#e2e8f0",
-    borderRadius: 8,
-    paddingHorizontal: 12,
+    borderColor: colors.border,
+    borderRadius: radius.sm,
+    paddingHorizontal: spacing.md,
     paddingVertical: 10,
     fontSize: 14,
     backgroundColor: "#f1f5f9",
-    color: "#94a3b8",
+    color: colors.textFaint,
   },
-  row: { flexDirection: "row", alignItems: "center", gap: 8 },
-  hintInline: { fontSize: 12, color: "#64748b" },
+  row: { flexDirection: "row", alignItems: "center", gap: spacing.sm },
+  hintInline: { fontSize: 12, color: colors.textMuted },
 });

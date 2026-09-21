@@ -1,6 +1,8 @@
 import type { ReactNode } from "react";
 import { StyleSheet, Text, View } from "react-native";
 
+import { colors, radius, spacing } from "@/lib/theme";
+
 export function SectionCard({ badge, title, children }: { badge: string; title: string; children: ReactNode }) {
   return (
     <View style={styles.card}>
@@ -16,18 +18,25 @@ export function SectionCard({ badge, title, children }: { badge: string; title: 
 }
 
 const styles = StyleSheet.create({
-  card: { backgroundColor: "#fff", borderRadius: 14, padding: 14, borderWidth: 1, borderColor: "#e2e8f0", gap: 12 },
-  header: { flexDirection: "row", alignItems: "center", gap: 8 },
+  card: {
+    backgroundColor: colors.card,
+    borderRadius: radius.lg,
+    padding: spacing.lg - 2,
+    borderWidth: 1,
+    borderColor: colors.border,
+    gap: spacing.md,
+  },
+  header: { flexDirection: "row", alignItems: "center", gap: spacing.sm },
   badgeCircle: {
     width: 24,
     height: 24,
     borderRadius: 12,
-    backgroundColor: "#f1f5f9",
+    backgroundColor: colors.brandCoral,
     alignItems: "center",
     justifyContent: "center",
   },
-  badgeCircleText: { fontSize: 11, fontWeight: "700", color: "#475569" },
-  badgePill: { borderRadius: 999, backgroundColor: "#f1f5f9", paddingHorizontal: 12, paddingVertical: 4 },
-  badgePillText: { fontSize: 11, fontWeight: "600", color: "#64748b" },
-  title: { fontSize: 13, fontWeight: "700", color: "#1e293b" },
+  badgeCircleText: { fontSize: 11, fontWeight: "700", color: "#fff" },
+  badgePill: { borderRadius: radius.pill, backgroundColor: colors.brandTeal, paddingHorizontal: spacing.md, paddingVertical: 4 },
+  badgePillText: { fontSize: 11, fontWeight: "600", color: "#fff" },
+  title: { fontSize: 13, fontWeight: "700", color: colors.text },
 });

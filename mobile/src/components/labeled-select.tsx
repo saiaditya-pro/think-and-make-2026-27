@@ -2,6 +2,8 @@ import { useState } from "react";
 import { FlatList, Modal, StyleSheet, Text, TouchableOpacity, useWindowDimensions, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { colors, radius, spacing } from "@/lib/theme";
+
 export function LabeledSelect({
   placeholder,
   value,
@@ -71,20 +73,20 @@ export function LabeledSelect({
 const styles = StyleSheet.create({
   trigger: {
     borderWidth: 1,
-    borderColor: "#e2e8f0",
-    borderRadius: 8,
-    paddingHorizontal: 12,
+    borderColor: colors.border,
+    borderRadius: radius.sm,
+    paddingHorizontal: spacing.md,
     paddingVertical: 10,
     backgroundColor: "#fff",
   },
   disabled: { opacity: 0.4 },
-  value: { color: "#0f172a", fontSize: 14 },
-  placeholder: { color: "#94a3b8", fontSize: 14 },
+  value: { color: colors.text, fontSize: 14 },
+  placeholder: { color: colors.textFaint, fontSize: 14 },
   backdrop: { flex: 1, backgroundColor: "rgba(15,23,42,0.4)", justifyContent: "flex-end" },
-  sheet: { backgroundColor: "#fff", borderTopLeftRadius: 16, borderTopRightRadius: 16, padding: 8 },
+  sheet: { backgroundColor: "#fff", borderTopLeftRadius: radius.xl, borderTopRightRadius: radius.xl, padding: spacing.sm },
   list: { flex: 1 },
-  option: { paddingVertical: 14, paddingHorizontal: 12, borderBottomWidth: 1, borderBottomColor: "#f1f5f9" },
+  option: { paddingVertical: 14, paddingHorizontal: spacing.md, borderBottomWidth: 1, borderBottomColor: "#f1f5f9" },
   optionText: { fontSize: 15, color: "#334155" },
-  optionTextActive: { fontWeight: "700", color: "#0ea5e9" },
-  emptyText: { padding: 16, fontSize: 13, color: "#94a3b8", textAlign: "center" },
+  optionTextActive: { fontWeight: "700", color: colors.brandCoral },
+  emptyText: { padding: spacing.lg, fontSize: 13, color: colors.textFaint, textAlign: "center" },
 });

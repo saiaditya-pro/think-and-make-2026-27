@@ -3,7 +3,7 @@ import { useRouter } from "expo-router";
 import * as ImagePicker from "expo-image-picker";
 import { useEffect } from "react";
 import { Controller, useForm } from "react-hook-form";
-import { ActivityIndicator, Alert, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { ActivityIndicator, Alert, ScrollView, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { z } from "zod";
 
 import { FormField } from "@/components/form-field";
@@ -13,8 +13,11 @@ import { usePartnerSchoolPicker } from "@/components/forms/use-partner-school-pi
 import { ScreenHeader } from "@/components/screen-header";
 import { SegmentedField } from "@/components/segmented-field";
 import { useKitDeliveryForSchool, useSaveKitDelivery, useUploadKitFile } from "@/features/kits/use-kits-data";
+import { useOpenDrawer } from "@/hooks/use-open-drawer";
 import { apiErrorMessage } from "@/lib/api-error";
 import { useAuth } from "@/lib/auth-context";
+import { formScreenStyles as fs } from "@/lib/form-screen-styles";
+import { colors } from "@/lib/theme";
 import { parseGradesOffered } from "@/lib/grades";
 import type { KitDelivery, School } from "@/lib/types";
 
@@ -90,6 +93,7 @@ export default function KitsScreen() {
   const { auth } = useAuth();
   const isAdmin = auth?.user.role === "admin";
   const router = useRouter();
+  const openDrawer = useOpenDrawer();
 
   const form = useForm<FormValues>({
     resolver: zodResolver(kitsSchema),
@@ -145,17 +149,17 @@ export default function KitsScreen() {
   });
 
   return (
-    <View style={styles.screen}>
-      <ScreenHeader eyebrow="THINK & MAKE 2026-27" title="Kits Handover Info — Form 5" showBack />
-      <ScrollView contentContainerStyle={styles.body}>
+    <View style={fs.screen}>
+      <ScreenHeader eyebrow="THINK & MAKE 2026-27" title="Kits Handover Info — Form 5" onMenuPress={openDrawer} />
+      <ScrollView contentContainerStyle={fs.body}>
         <SectionCard badge="Visit" title="Who & where">
           {picker}
           {form1Missing && (
             <StatusBanner
               title="School Enrollment (Form 1) must be submitted first."
               action={
-                <TouchableOpacity style={styles.linkButton} onPress={() => router.push("/(app)/schools/enrollment")}>
-                  <Text style={styles.linkButtonText}>Go to Form 1</Text>
+                <TouchableOpacity style={fs.linkButton} onPress={() => router.push("/(app)/schools/enrollment")}>
+                  <Text style={fs.linkButtonText}>Go to Form 1</Text>
                 </TouchableOpacity>
               }
             />
@@ -182,7 +186,7 @@ export default function KitsScreen() {
                       editable={!fieldsDisabled}
                       value={field.value}
                       onChangeText={field.onChange}
-                      style={[styles.input, fieldsDisabled && styles.inputDisabled]}
+                      style={[fs.input, fieldsDisabled && fs.inputDisabled]}
                     />
                   )}
                 />
@@ -196,7 +200,7 @@ export default function KitsScreen() {
                       editable={!fieldsDisabled}
                       value={field.value}
                       onChangeText={field.onChange}
-                      style={[styles.input, fieldsDisabled && styles.inputDisabled]}
+                      style={[fs.input, fieldsDisabled && fs.inputDisabled]}
                     />
                   )}
                 />
@@ -211,8 +215,8 @@ export default function KitsScreen() {
                       value={field.value}
                       onChangeText={field.onChange}
                       placeholder="YYYY-MM-DD"
-                      placeholderTextColor="#94a3b8"
-                      style={[styles.input, fieldsDisabled && styles.inputDisabled]}
+                      placeholderTextColor={colors.textFaint}
+                      style={[fs.input, fieldsDisabled && fs.inputDisabled]}
                     />
                   )}
                 />
@@ -244,28 +248,28 @@ export default function KitsScreen() {
             <SectionCard badge="B" title="Photos">
               <FormField label="Delivery proof photo" hint="Optional.">
                 <TouchableOpacity
-                  style={[styles.outlineButton, (fieldsDisabled || uploadFile.isPending) && styles.disabled]}
+                  style={[fs.outlineButton, (fieldsDisabled || uploadFile.isPending) && fs.disabled]}
                   disabled={fieldsDisabled || uploadFile.isPending}
                   onPress={() => pickFile("delivery_proof_photo", "kit_delivery_proof")}
                 >
                   {uploadFile.isPending ? (
                     <ActivityIndicator size="small" />
                   ) : (
-                    <Text style={styles.outlineButtonText}>{proofPhoto ? "Photo uploaded — change" : "Choose File"}</Text>
+                    <Text style={fs.outlineButtonText}>{proofPhoto ? "Photo uploaded — change" : "Choose File"}</Text>
                   )}
                 </TouchableOpacity>
               </FormField>
 
               <FormField label="Acknowledgement letter photo (signed by HM & Teacher)" hint="Optional.">
                 <TouchableOpacity
-                  style={[styles.outlineButton, (fieldsDisabled || uploadFile.isPending) && styles.disabled]}
+                  style={[fs.outlineButton, (fieldsDisabled || uploadFile.isPending) && fs.disabled]}
                   disabled={fieldsDisabled || uploadFile.isPending}
                   onPress={() => pickFile("acknowledgement_letter", "kit_acknowledgement_letter")}
                 >
                   {uploadFile.isPending ? (
                     <ActivityIndicator size="small" />
                   ) : (
-                    <Text style={styles.outlineButtonText}>{ackLetter ? "Photo uploaded — change" : "Choose File"}</Text>
+                    <Text style={fs.outlineButtonText}>{ackLetter ? "Photo uploaded — change" : "Choose File"}</Text>
                   )}
                 </TouchableOpacity>
               </FormField>
@@ -276,51 +280,19 @@ export default function KitsScreen() {
         <View style={{ height: 80 }} />
       </ScrollView>
 
-      <View style={styles.footer}>
+      <View style={fs.footer}>
         <TouchableOpacity
-          style={[styles.footerButton, styles.submitButton, (fieldsDisabled || saveDelivery.isPending) && styles.disabled]}
+          style={[fs.footerButton, fs.submitButton, (fieldsDisabled || saveDelivery.isPending) && fs.disabled]}
           disabled={fieldsDisabled || saveDelivery.isPending}
           onPress={onSubmit}
         >
           {saveDelivery.isPending ? (
             <ActivityIndicator size="small" color="#fff" />
           ) : (
-            <Text style={styles.submitButtonText}>Submit</Text>
+            <Text style={fs.submitButtonText}>Submit</Text>
           )}
         </TouchableOpacity>
       </View>
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: "#f8fafc" },
-  body: { padding: 16, gap: 12 },
-  input: {
-    borderWidth: 1,
-    borderColor: "#e2e8f0",
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    fontSize: 14,
-    color: "#0f172a",
-    backgroundColor: "#fff",
-  },
-  inputDisabled: { backgroundColor: "#f1f5f9", color: "#94a3b8" },
-  outlineButton: { borderWidth: 1, borderColor: "#cbd5e1", borderRadius: 8, paddingVertical: 10, alignItems: "center" },
-  outlineButtonText: { fontSize: 13, fontWeight: "700", color: "#334155" },
-  disabled: { opacity: 0.4 },
-  linkButton: {
-    backgroundColor: "#fff",
-    borderWidth: 1,
-    borderColor: "#f59e0b",
-    borderRadius: 8,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-  },
-  linkButtonText: { fontSize: 12, fontWeight: "700", color: "#92400e" },
-  footer: { flexDirection: "row", gap: 8, padding: 12, borderTopWidth: 1, borderTopColor: "#e2e8f0", backgroundColor: "#fff" },
-  footerButton: { flex: 1, borderRadius: 10, paddingVertical: 14, alignItems: "center" },
-  submitButton: { backgroundColor: "#0ea5e9" },
-  submitButtonText: { color: "#fff", fontWeight: "700", fontSize: 14 },
-});

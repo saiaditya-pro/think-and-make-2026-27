@@ -4,12 +4,15 @@ import { useMemo, useState } from "react";
 import { ActivityIndicator, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 import { ScreenHeader } from "@/components/screen-header";
+import { useOpenDrawer } from "@/hooks/use-open-drawer";
 import { useAuth } from "@/lib/auth-context";
+import { colors, radius, spacing } from "@/lib/theme";
 import type { Cluster, Paginated } from "@/lib/types";
 
 export default function SelectGradeSectionScreen() {
   const { auth, authFetch } = useAuth();
   const router = useRouter();
+  const openDrawer = useOpenDrawer();
   const schoolId = auth?.user.school;
   const [grade, setGrade] = useState<number | null>(null);
   const [section, setSection] = useState<string | null>(null);
@@ -34,7 +37,7 @@ export default function SelectGradeSectionScreen() {
 
   return (
     <View style={styles.screen}>
-      <ScreenHeader eyebrow="Inqui Buddy" title="Select Grade & Section" showBack />
+      <ScreenHeader eyebrow="INSIGHTS" title="InquiBuddy · Select Grade & Section" onMenuPress={openDrawer} />
       <View style={styles.body}>
         {clustersQuery.isLoading && <ActivityIndicator />}
 
@@ -82,23 +85,23 @@ export default function SelectGradeSectionScreen() {
 }
 
 const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: "#f8fafc" },
-  body: { padding: 16 },
-  label: { fontSize: 13, fontWeight: "600", color: "#334155", marginTop: 16, marginBottom: 8 },
+  screen: { flex: 1, backgroundColor: colors.brandBg },
+  body: { padding: spacing.lg },
+  label: { fontSize: 13, fontWeight: "600", color: "#334155", marginTop: spacing.lg, marginBottom: spacing.sm },
   row: { flexDirection: "row" },
   chip: {
     borderWidth: 1,
-    borderColor: "#e2e8f0",
-    borderRadius: 999,
+    borderColor: colors.border,
+    borderRadius: radius.pill,
     paddingHorizontal: 14,
-    paddingVertical: 8,
-    marginRight: 8,
+    paddingVertical: spacing.sm,
+    marginRight: spacing.sm,
     backgroundColor: "#fff",
   },
-  chipActive: { backgroundColor: "#0ea5e9", borderColor: "#0ea5e9" },
+  chipActive: { backgroundColor: colors.brandCoral, borderColor: colors.brandCoral },
   chipText: { color: "#334155", fontSize: 13, fontWeight: "600" },
   chipTextActive: { color: "#fff" },
-  button: { backgroundColor: "#0ea5e9", borderRadius: 10, padding: 14, alignItems: "center", marginTop: 28 },
+  button: { backgroundColor: colors.brandCoral, borderRadius: radius.md, padding: 14, alignItems: "center", marginTop: 28 },
   buttonDisabled: { opacity: 0.4 },
   buttonText: { color: "#fff", fontWeight: "700", fontSize: 15 },
 });

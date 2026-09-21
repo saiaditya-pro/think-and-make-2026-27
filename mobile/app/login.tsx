@@ -11,6 +11,7 @@ import {
 } from "react-native";
 
 import { useAuth } from "@/lib/auth-context";
+import { colors, radius, spacing } from "@/lib/theme";
 
 export default function LoginScreen() {
   const { login } = useAuth();
@@ -34,8 +35,13 @@ export default function LoginScreen() {
   return (
     <KeyboardAvoidingView style={styles.screen} behavior={Platform.OS === "ios" ? "padding" : undefined}>
       <View style={styles.header}>
-        <Text style={styles.eyebrow}>INQUI-LAB · THINK & MAKE</Text>
-        <Text style={styles.title}>THINK & MAKE 2026-27</Text>
+        <View style={styles.logoRow}>
+          <View style={styles.logoMark}>
+            <Text style={styles.logoPlus}>+</Text>
+          </View>
+          <Text style={styles.eyebrow}>INQUI-LAB · THINK &amp; MAKE</Text>
+        </View>
+        <Text style={styles.title}>THINK &amp; MAKE 2026-27</Text>
       </View>
 
       <View style={styles.card}>
@@ -43,6 +49,7 @@ export default function LoginScreen() {
         <TextInput
           style={styles.input}
           placeholder="e.g. school_user"
+          placeholderTextColor={colors.textFaint}
           autoCapitalize="none"
           value={username}
           onChangeText={setUsername}
@@ -61,13 +68,23 @@ export default function LoginScreen() {
 }
 
 const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: "#f8fafc", justifyContent: "center", padding: 20 },
-  header: { backgroundColor: "#0f4c5c", borderRadius: 16, padding: 20, marginBottom: -16, paddingBottom: 36 },
-  eyebrow: { color: "#7dd3fc", fontSize: 11, fontWeight: "600", letterSpacing: 0.5 },
-  title: { color: "#fff", fontSize: 18, fontWeight: "700", marginTop: 2 },
+  screen: { flex: 1, backgroundColor: colors.brandBg, justifyContent: "center", padding: 20 },
+  header: { backgroundColor: colors.brandTeal, borderRadius: radius.xl, padding: 20, marginBottom: -16, paddingBottom: 36 },
+  logoRow: { flexDirection: "row", alignItems: "center", gap: spacing.sm },
+  logoMark: {
+    width: 22,
+    height: 22,
+    borderRadius: radius.sm - 2,
+    backgroundColor: colors.brandCoral,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  logoPlus: { color: "#fff", fontSize: 13, fontWeight: "800", marginTop: -1 },
+  eyebrow: { color: "rgba(255,255,255,0.65)", fontSize: 11, fontWeight: "600", letterSpacing: 0.5 },
+  title: { color: "#fff", fontSize: 18, fontWeight: "700", marginTop: 6 },
   card: {
     backgroundColor: "#fff",
-    borderRadius: 16,
+    borderRadius: radius.xl,
     padding: 20,
     paddingTop: 28,
     shadowColor: "#000",
@@ -76,8 +93,8 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   label: { fontSize: 13, fontWeight: "600", color: "#334155", marginBottom: 6, marginTop: 12 },
-  input: { borderWidth: 1, borderColor: "#e2e8f0", borderRadius: 10, padding: 12, fontSize: 15 },
-  error: { color: "#dc2626", fontSize: 13, marginTop: 10 },
-  button: { backgroundColor: "#0ea5e9", borderRadius: 10, padding: 14, alignItems: "center", marginTop: 20 },
+  input: { borderWidth: 1, borderColor: colors.border, borderRadius: radius.md, padding: 12, fontSize: 15 },
+  error: { color: colors.destructive, fontSize: 13, marginTop: 10 },
+  button: { backgroundColor: colors.brandCoral, borderRadius: radius.md, padding: 14, alignItems: "center", marginTop: 20 },
   buttonText: { color: "#fff", fontWeight: "700", fontSize: 15 },
 });

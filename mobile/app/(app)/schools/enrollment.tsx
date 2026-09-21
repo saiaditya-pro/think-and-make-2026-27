@@ -1,28 +1,25 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import * as ImagePicker from "expo-image-picker";
 import * as Location from "expo-location";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { Controller, useForm } from "react-hook-form";
-import {
-  ActivityIndicator,
-  Alert,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { ActivityIndicator, Alert, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { z } from "zod";
 
 import { ChipMultiselect } from "@/components/chip-multiselect";
 import { FormField } from "@/components/form-field";
+import { SectionCard } from "@/components/forms/section-card";
+import { usePartnerSchoolPicker } from "@/components/forms/use-partner-school-picker";
 import { LabeledSelect } from "@/components/labeled-select";
 import { ScreenHeader } from "@/components/screen-header";
 import { SegmentedField } from "@/components/segmented-field";
+import { useSaveEnrollmentDraft, useSubmitForm1, useUploadSchoolPhoto } from "@/features/enrollment/use-enrollment-data";
+import { useOpenDrawer } from "@/hooks/use-open-drawer";
+import { apiErrorMessage } from "@/lib/api-error";
 import { useAuth } from "@/lib/auth-context";
-import type { Paginated, Partner, School } from "@/lib/types";
+import { formScreenStyles as fs } from "@/lib/form-screen-styles";
+import { colors, spacing } from "@/lib/theme";
+import type { School } from "@/lib/types";
 
 const REQUIRED = "Required";
 const GRADE_OPTIONS = [6, 7, 8, 9];
@@ -192,99 +189,36 @@ function buildSubmitPayload(values: FormValues) {
   };
 }
 
-async function readError(res: Response): Promise<string | undefined> {
-  try {
-    const body = await res.json();
-    if (Array.isArray(body) && body.length) return String(body[0]);
-    if (body && typeof body === "object" && "detail" in body) return String(body.detail);
-  } catch {
-    // ignore
-  }
-  return undefined;
-}
-
 export default function EnrollmentScreen() {
-  const { auth, authFetch } = useAuth();
+  const { auth } = useAuth();
   const isAdmin = auth?.user.role === "admin";
-  const queryClient = useQueryClient();
-
-  const [partnerId, setPartnerId] = useState("");
-  const [schoolId, setSchoolId] = useState("");
-
-  const partnersQuery = useQuery({
-    queryKey: ["partners"],
-    queryFn: async () => (await authFetch("/partners/")).json() as Promise<Paginated<Partner>>,
-  });
-
-  const schoolsQuery = useQuery({
-    queryKey: ["schools", "by-partner", partnerId],
-    queryFn: async () =>
-      (await authFetch(`/schools/?instance__partner=${partnerId}`)).json() as Promise<Paginated<School>>,
-    enabled: !!partnerId,
-  });
-
-  const schoolDetailQuery = useQuery({
-    queryKey: ["schools", "detail", schoolId],
-    queryFn: async () => (await authFetch(`/schools/${schoolId}/`)).json() as Promise<School>,
-    enabled: !!schoolId,
-  });
-
-  const school = schoolDetailQuery.data;
-
-  const saveDraft = useMutation({
-    mutationFn: async (payload: Record<string, unknown>) => {
-      const res = await authFetch(`/schools/${schoolId}/`, { method: "PATCH", body: JSON.stringify(payload) });
-      if (!res.ok) throw new Error((await readError(res)) ?? "Could not save draft.");
-      return (await res.json()) as School;
-    },
-    onSuccess: (data) => queryClient.setQueryData(["schools", "detail", schoolId], data),
-  });
-
-  const submitForm1 = useMutation({
-    mutationFn: async (payload: Record<string, unknown>) => {
-      const res = await authFetch(`/schools/${schoolId}/submit-form1/`, {
-        method: "POST",
-        body: JSON.stringify(payload),
-      });
-      if (!res.ok) throw new Error((await readError(res)) ?? "Could not submit.");
-      return (await res.json()) as School;
-    },
-    onSuccess: (data) => queryClient.setQueryData(["schools", "detail", schoolId], data),
-  });
-
-  const uploadPhoto = useMutation({
-    mutationFn: async (asset: { uri: string; mimeType?: string }) => {
-      const form = new FormData();
-      form.append("file", { uri: asset.uri, name: "school-photo.jpg", type: asset.mimeType ?? "image/jpeg" } as unknown as Blob);
-      form.append("entity_type", "school_photo");
-      form.append("entity_id", schoolId);
-      const res = await authFetch("/files/", { method: "POST", body: form });
-      if (!res.ok) throw new Error("Could not upload photo.");
-      return (await res.json()) as { id: number };
-    },
-  });
+  const openDrawer = useOpenDrawer();
 
   const form = useForm<FormValues>({
     resolver: zodResolver(enrollmentSchema),
     defaultValues: EMPTY_VALUES,
   });
 
+  const { schoolId, school, locked, picker } = usePartnerSchoolPicker({
+    isAdmin,
+    submittedField: "form1_submitted",
+    submittedBannerTitle: "Already submitted for this school.",
+    submittedBannerBody: "Form 1 data has already been submitted for this school.",
+    onPartnerChange: () => form.reset(EMPTY_VALUES),
+  });
+
+  const saveDraft = useSaveEnrollmentDraft(schoolId);
+  const submitForm1 = useSubmitForm1(schoolId);
+  const uploadPhoto = useUploadSchoolPhoto(schoolId);
+
   useEffect(() => {
     if (school) form.reset(schoolToFormValues(school));
   }, [school, form]);
 
-  const alreadySubmitted = !!school?.form1_submitted;
-  const locked = alreadySubmitted && !isAdmin;
   const fieldsDisabled = !schoolId || locked;
   const errors = form.formState.errors;
   const grades = form.watch("grades");
   const schoolPhoto = form.watch("school_photo");
-
-  function handlePartnerChange(value: string) {
-    setPartnerId(value);
-    setSchoolId("");
-    form.reset(EMPTY_VALUES);
-  }
 
   async function pickPhoto() {
     const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -321,7 +255,7 @@ export default function EnrollmentScreen() {
       await saveDraft.mutateAsync(buildDraftPayload(form.getValues()));
       Alert.alert("Draft saved");
     } catch (err) {
-      Alert.alert("Could not save draft", err instanceof Error ? err.message : undefined);
+      Alert.alert("Could not save draft", apiErrorMessage(err));
     }
   }
 
@@ -330,62 +264,16 @@ export default function EnrollmentScreen() {
       await submitForm1.mutateAsync(buildSubmitPayload(values));
       Alert.alert("Form 1 submitted");
     } catch (err) {
-      Alert.alert("Could not submit", err instanceof Error ? err.message : undefined);
+      Alert.alert("Could not submit", apiErrorMessage(err));
     }
   });
 
   return (
-    <View style={styles.screen}>
-      <ScreenHeader eyebrow="THINK & MAKE 2026-27" title="School Enrollment — Form 1" showBack />
-      <ScrollView contentContainerStyle={styles.body}>
-        <View style={styles.card}>
-          <FormField label="Select Partner" required>
-            <LabeledSelect
-              placeholder="Select..."
-              value={partnerId}
-              onChange={handlePartnerChange}
-              options={(partnersQuery.data?.results ?? []).map((p) => ({ value: String(p.id), label: p.name }))}
-            />
-          </FormField>
-
-          <FormField label="Select School" required hint="Schools load from the roster and filter by partner.">
-            <LabeledSelect
-              placeholder={partnerId ? "Select..." : "Select partner first..."}
-              value={schoolId}
-              onChange={setSchoolId}
-              disabled={!partnerId}
-              options={(schoolsQuery.data?.results ?? []).map((s) => ({ value: String(s.id), label: s.name }))}
-            />
-          </FormField>
-
-          <FormField label="School Code">
-            <TextInput
-              editable={false}
-              value={school?.school_code ?? ""}
-              placeholder="auto-filled"
-              placeholderTextColor="#94a3b8"
-              style={[styles.input, styles.inputDisabled]}
-            />
-          </FormField>
-
-          {schoolDetailQuery.isFetching && (
-            <View style={styles.row}>
-              <ActivityIndicator size="small" />
-              <Text style={styles.hintInline}>Checking school data...</Text>
-            </View>
-          )}
-
-          {alreadySubmitted && (
-            <View style={styles.banner}>
-              <Text style={styles.bannerText}>
-                ⚠ Already submitted for this school. Form 1 data has already been submitted for this school.{" "}
-                {isAdmin ? "You can edit it as an admin." : "Please contact admin to make any changes."}
-              </Text>
-            </View>
-          )}
-        </View>
-
-        <View style={styles.card}>
+    <View style={fs.screen}>
+      <ScreenHeader eyebrow="THINK & MAKE 2026-27" title="School Enrollment — Form 1" onMenuPress={openDrawer} />
+      <ScrollView contentContainerStyle={fs.body}>
+        <SectionCard badge="Visit" title="Who & where">
+          {picker}
           <FormField label="Visited by (IIF staff)" required error={errors.visited_by?.message}>
             <Controller
               control={form.control}
@@ -395,7 +283,7 @@ export default function EnrollmentScreen() {
                   editable={!fieldsDisabled}
                   value={field.value}
                   onChangeText={field.onChange}
-                  style={[styles.input, fieldsDisabled && styles.inputDisabled]}
+                  style={[fs.input, fieldsDisabled && fs.inputDisabled]}
                 />
               )}
             />
@@ -410,53 +298,51 @@ export default function EnrollmentScreen() {
                   value={field.value}
                   onChangeText={field.onChange}
                   placeholder="YYYY-MM-DD"
-                  style={[styles.input, fieldsDisabled && styles.inputDisabled]}
+                  placeholderTextColor={colors.textFaint}
+                  style={[fs.input, fieldsDisabled && fs.inputDisabled]}
                 />
               )}
             />
           </FormField>
-        </View>
+        </SectionCard>
 
-        <View style={styles.card}>
-          <Text style={styles.sectionTitle}>A. School Location</Text>
+        <SectionCard badge="A" title="School Location">
           <FormField label="Enter School Location" required error={errors.location?.message}>
             <Controller control={form.control} name="location" render={({ field }) => (
-              <TextInput editable={!fieldsDisabled} value={field.value} onChangeText={field.onChange} style={[styles.input, fieldsDisabled && styles.inputDisabled]} />
+              <TextInput editable={!fieldsDisabled} value={field.value} onChangeText={field.onChange} style={[fs.input, fieldsDisabled && fs.inputDisabled]} />
             )} />
           </FormField>
           <FormField label="Enter District" required error={errors.district?.message}>
             <Controller control={form.control} name="district" render={({ field }) => (
-              <TextInput editable={!fieldsDisabled} value={field.value} onChangeText={field.onChange} style={[styles.input, fieldsDisabled && styles.inputDisabled]} />
+              <TextInput editable={!fieldsDisabled} value={field.value} onChangeText={field.onChange} style={[fs.input, fieldsDisabled && fs.inputDisabled]} />
             )} />
           </FormField>
           <FormField label="What's the distance from district to IIF (in km)?" required error={errors.distance_to_iif_km?.message}>
             <Controller control={form.control} name="distance_to_iif_km" render={({ field }) => (
-              <TextInput editable={!fieldsDisabled} value={field.value} onChangeText={field.onChange} keyboardType="numeric" style={[styles.input, fieldsDisabled && styles.inputDisabled]} />
+              <TextInput editable={!fieldsDisabled} value={field.value} onChangeText={field.onChange} keyboardType="numeric" style={[fs.input, fieldsDisabled && fs.inputDisabled]} />
             )} />
           </FormField>
-        </View>
+        </SectionCard>
 
-        <View style={styles.card}>
-          <Text style={styles.sectionTitle}>B. Principal details</Text>
+        <SectionCard badge="B" title="Principal details">
           <FormField label="Enter Principal — full name" required error={errors.principal_name?.message}>
             <Controller control={form.control} name="principal_name" render={({ field }) => (
-              <TextInput editable={!fieldsDisabled} value={field.value} onChangeText={field.onChange} style={[styles.input, fieldsDisabled && styles.inputDisabled]} />
+              <TextInput editable={!fieldsDisabled} value={field.value} onChangeText={field.onChange} style={[fs.input, fieldsDisabled && fs.inputDisabled]} />
             )} />
           </FormField>
           <FormField label="Enter Principal — phone" required error={errors.principal_phone?.message}>
             <Controller control={form.control} name="principal_phone" render={({ field }) => (
-              <TextInput editable={!fieldsDisabled} value={field.value} onChangeText={field.onChange} keyboardType="phone-pad" placeholder="10-digit mobile" placeholderTextColor="#94a3b8" style={[styles.input, fieldsDisabled && styles.inputDisabled]} />
+              <TextInput editable={!fieldsDisabled} value={field.value} onChangeText={field.onChange} keyboardType="phone-pad" placeholder="10-digit mobile" placeholderTextColor={colors.textFaint} style={[fs.input, fieldsDisabled && fs.inputDisabled]} />
             )} />
           </FormField>
           <FormField label="Enter Principal — email" error={errors.principal_email?.message}>
             <Controller control={form.control} name="principal_email" render={({ field }) => (
-              <TextInput editable={!fieldsDisabled} value={field.value} onChangeText={field.onChange} placeholder="optional" placeholderTextColor="#94a3b8" autoCapitalize="none" keyboardType="email-address" style={[styles.input, fieldsDisabled && styles.inputDisabled]} />
+              <TextInput editable={!fieldsDisabled} value={field.value} onChangeText={field.onChange} placeholder="optional" placeholderTextColor={colors.textFaint} autoCapitalize="none" keyboardType="email-address" style={[fs.input, fieldsDisabled && fs.inputDisabled]} />
             )} />
           </FormField>
-        </View>
+        </SectionCard>
 
-        <View style={styles.card}>
-          <Text style={styles.sectionTitle}>C. School program profile</Text>
+        <SectionCard badge="C" title="School program profile">
           <FormField label="Select Gender type" required error={errors.gender_type?.message}>
             <Controller control={form.control} name="gender_type" render={({ field }) => (
               <LabeledSelect placeholder="Select..." value={field.value} onChange={field.onChange} options={GENDER_OPTIONS} disabled={fieldsDisabled} />
@@ -478,12 +364,11 @@ export default function EnrollmentScreen() {
             )} />
           </FormField>
           <FormField label="All grades together, how many sections do we have from this school?" required>
-            <TextInput editable={false} value={String(grades.length)} placeholder="auto-calculated" placeholderTextColor="#94a3b8" style={[styles.input, styles.inputDisabled]} />
+            <TextInput editable={false} value={String(grades.length)} placeholder="auto-calculated" placeholderTextColor={colors.textFaint} style={[fs.input, fs.inputDisabled]} />
           </FormField>
-        </View>
+        </SectionCard>
 
-        <View style={styles.card}>
-          <Text style={styles.sectionTitle}>D. School Infrastructure</Text>
+        <SectionCard badge="D" title="School Infrastructure">
           <FormField label="Does the school have Lab / activity room available?" required error={errors.lab_room?.message}>
             <Controller control={form.control} name="lab_room" render={({ field }) => (
               <SegmentedField options={YES_NO_OPTIONS} value={field.value} onChange={field.onChange} disabled={fieldsDisabled} />
@@ -504,31 +389,30 @@ export default function EnrollmentScreen() {
               <SegmentedField options={YES_NO_OPTIONS} value={field.value} onChange={field.onChange} disabled={fieldsDisabled} />
             )} />
           </FormField>
-        </View>
+        </SectionCard>
 
-        <View style={styles.card}>
-          <Text style={styles.sectionTitle}>H. Photos &amp; Gmaps</Text>
+        <SectionCard badge="H" title="Photos &amp; Gmaps">
           <FormField label="Upload School photo" hint="Optional.">
             <TouchableOpacity
-              style={[styles.outlineButton, (fieldsDisabled || uploadPhoto.isPending) && styles.disabled]}
+              style={[fs.outlineButton, (fieldsDisabled || uploadPhoto.isPending) && fs.disabled]}
               disabled={fieldsDisabled || uploadPhoto.isPending}
               onPress={pickPhoto}
             >
               {uploadPhoto.isPending ? (
                 <ActivityIndicator size="small" />
               ) : (
-                <Text style={styles.outlineButtonText}>{schoolPhoto ? "Photo uploaded — change" : "Choose photo"}</Text>
+                <Text style={fs.outlineButtonText}>{schoolPhoto ? "Photo uploaded — change" : "Choose photo"}</Text>
               )}
             </TouchableOpacity>
           </FormField>
 
           <FormField label="Share School Google Maps location" required error={errors.maps_link?.message}>
             <TouchableOpacity
-              style={[styles.outlineButton, fieldsDisabled && styles.disabled]}
+              style={[fs.outlineButton, fieldsDisabled && fs.disabled]}
               disabled={fieldsDisabled}
               onPress={useMyGps}
             >
-              <Text style={styles.outlineButtonText}>📍 Use my GPS</Text>
+              <Text style={fs.outlineButtonText}>📍 Use my GPS</Text>
             </TouchableOpacity>
             <Controller control={form.control} name="maps_link" render={({ field }) => (
               <TextInput
@@ -536,24 +420,23 @@ export default function EnrollmentScreen() {
                 value={field.value}
                 onChangeText={field.onChange}
                 placeholder="or paste maps URL"
-                placeholderTextColor="#94a3b8"
+                placeholderTextColor={colors.textFaint}
                 autoCapitalize="none"
-                style={[styles.input, styles.inputSpaced, fieldsDisabled && styles.inputDisabled]}
+                style={[fs.input, styles.inputSpaced, fieldsDisabled && fs.inputDisabled]}
               />
             )} />
           </FormField>
-        </View>
+        </SectionCard>
 
-        <View style={styles.card}>
-          <Text style={styles.sectionTitle}>I. Notes &amp; sign-off</Text>
+        <SectionCard badge="I" title="Notes &amp; sign-off">
           <FormField label="Open observations / concerns">
             <Controller control={form.control} name="observations" render={({ field }) => (
-              <TextInput editable={!fieldsDisabled} value={field.value} onChangeText={field.onChange} multiline style={[styles.input, styles.textarea, fieldsDisabled && styles.inputDisabled]} />
+              <TextInput editable={!fieldsDisabled} value={field.value} onChangeText={field.onChange} multiline style={[fs.input, fs.textarea, fieldsDisabled && fs.inputDisabled]} />
             )} />
           </FormField>
           <FormField label="Next steps · what's needed from school">
             <Controller control={form.control} name="next_steps" render={({ field }) => (
-              <TextInput editable={!fieldsDisabled} value={field.value} onChangeText={field.onChange} multiline style={[styles.input, styles.textarea, fieldsDisabled && styles.inputDisabled]} />
+              <TextInput editable={!fieldsDisabled} value={field.value} onChangeText={field.onChange} multiline style={[fs.input, fs.textarea, fieldsDisabled && fs.inputDisabled]} />
             )} />
           </FormField>
           <FormField label="Principal acknowledgement" required error={errors.principal_acknowledged?.message} hint="Principal aware of programme and timing.">
@@ -561,25 +444,25 @@ export default function EnrollmentScreen() {
               <SegmentedField options={YES_NO_OPTIONS} value={field.value} onChange={field.onChange} disabled={fieldsDisabled} />
             )} />
           </FormField>
-        </View>
+        </SectionCard>
 
         <View style={{ height: 80 }} />
       </ScrollView>
 
-      <View style={styles.footer}>
+      <View style={fs.footer}>
         <TouchableOpacity
-          style={[styles.footerButton, styles.draftButton, (fieldsDisabled || saveDraft.isPending) && styles.disabled]}
+          style={[fs.footerButton, fs.draftButton, (fieldsDisabled || saveDraft.isPending) && fs.disabled]}
           disabled={fieldsDisabled || saveDraft.isPending}
           onPress={handleSaveDraft}
         >
-          {saveDraft.isPending ? <ActivityIndicator size="small" /> : <Text style={styles.draftButtonText}>Save draft</Text>}
+          {saveDraft.isPending ? <ActivityIndicator size="small" /> : <Text style={fs.draftButtonText}>Save draft</Text>}
         </TouchableOpacity>
         <TouchableOpacity
-          style={[styles.footerButton, styles.submitButton, (fieldsDisabled || submitForm1.isPending) && styles.disabled]}
+          style={[fs.footerButton, fs.submitButton, (fieldsDisabled || submitForm1.isPending) && fs.disabled]}
           disabled={fieldsDisabled || submitForm1.isPending}
           onPress={onSubmit}
         >
-          {submitForm1.isPending ? <ActivityIndicator size="small" color="#fff" /> : <Text style={styles.submitButtonText}>Submit</Text>}
+          {submitForm1.isPending ? <ActivityIndicator size="small" color="#fff" /> : <Text style={fs.submitButtonText}>Submit</Text>}
         </TouchableOpacity>
       </View>
     </View>
@@ -587,41 +470,5 @@ export default function EnrollmentScreen() {
 }
 
 const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: "#f8fafc" },
-  body: { padding: 16, gap: 12 },
-  card: { backgroundColor: "#fff", borderRadius: 14, padding: 14, borderWidth: 1, borderColor: "#e2e8f0" },
-  sectionTitle: { fontSize: 13, fontWeight: "700", color: "#334155", marginBottom: 12 },
-  input: {
-    borderWidth: 1,
-    borderColor: "#e2e8f0",
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    fontSize: 14,
-    color: "#0f172a",
-    backgroundColor: "#fff",
-  },
-  inputDisabled: { backgroundColor: "#f1f5f9", color: "#94a3b8" },
-  inputSpaced: { marginTop: 8 },
-  textarea: { minHeight: 80, textAlignVertical: "top" },
-  row: { flexDirection: "row", alignItems: "center", gap: 8 },
-  hintInline: { fontSize: 12, color: "#64748b" },
-  banner: { backgroundColor: "#fffbeb", borderWidth: 1, borderColor: "#fcd34d", borderRadius: 10, padding: 12 },
-  bannerText: { fontSize: 13, color: "#92400e" },
-  outlineButton: { borderWidth: 1, borderColor: "#cbd5e1", borderRadius: 8, paddingVertical: 10, alignItems: "center" },
-  outlineButtonText: { fontSize: 13, fontWeight: "700", color: "#334155" },
-  disabled: { opacity: 0.4 },
-  footer: {
-    flexDirection: "row",
-    gap: 8,
-    padding: 12,
-    borderTopWidth: 1,
-    borderTopColor: "#e2e8f0",
-    backgroundColor: "#fff",
-  },
-  footerButton: { flex: 1, borderRadius: 10, paddingVertical: 14, alignItems: "center" },
-  draftButton: { backgroundColor: "#f1f5f9" },
-  draftButtonText: { color: "#334155", fontWeight: "700", fontSize: 14 },
-  submitButton: { backgroundColor: "#0ea5e9" },
-  submitButtonText: { color: "#fff", fontWeight: "700", fontSize: 14 },
+  inputSpaced: { marginTop: spacing.sm },
 });

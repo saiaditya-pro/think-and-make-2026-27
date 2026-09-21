@@ -13,8 +13,11 @@ import { usePartnerSchoolPicker } from "@/components/forms/use-partner-school-pi
 import { ScreenHeader } from "@/components/screen-header";
 import { SegmentedField } from "@/components/segmented-field";
 import { useCreateHeadcount, useHeadcountsForSchool, useUploadHeadcountFile } from "@/features/headcounts/use-headcounts-data";
+import { useOpenDrawer } from "@/hooks/use-open-drawer";
 import { apiErrorMessage } from "@/lib/api-error";
 import { useAuth } from "@/lib/auth-context";
+import { formScreenStyles as fs } from "@/lib/form-screen-styles";
+import { colors } from "@/lib/theme";
 import { parseGradesOffered } from "@/lib/grades";
 
 const REQUIRED = "Required";
@@ -59,6 +62,7 @@ function buildPayload(values: FormValues) {
 
 export default function HeadcountsScreen() {
   const router = useRouter();
+  const openDrawer = useOpenDrawer();
   const { auth } = useAuth();
   const isAdmin = auth?.user.role === "admin";
 
@@ -121,17 +125,17 @@ export default function HeadcountsScreen() {
   });
 
   return (
-    <View style={styles.screen}>
-      <ScreenHeader eyebrow="THINK & MAKE 2026-27" title="Students Count Info — Form 3" showBack />
-      <ScrollView contentContainerStyle={styles.body}>
+    <View style={fs.screen}>
+      <ScreenHeader eyebrow="THINK & MAKE 2026-27" title="Students Count Info — Form 3" onMenuPress={openDrawer} />
+      <ScrollView contentContainerStyle={fs.body}>
         <SectionCard badge="Visit" title="Who & where">
           {picker}
           {form2Missing && (
             <StatusBanner
               title="Schools Contact Info (Form 2) must be submitted first."
               action={
-                <TouchableOpacity style={styles.linkButton} onPress={() => router.push("/(app)/schools/contact-info")}>
-                  <Text style={styles.linkButtonText}>Go to Form 2</Text>
+                <TouchableOpacity style={fs.linkButton} onPress={() => router.push("/(app)/schools/contact-info")}>
+                  <Text style={fs.linkButtonText}>Go to Form 2</Text>
                 </TouchableOpacity>
               }
             />
@@ -178,8 +182,8 @@ export default function HeadcountsScreen() {
                     value={field.value}
                     onChangeText={(v) => field.onChange(v.toUpperCase())}
                     placeholder="e.g. A"
-                    placeholderTextColor="#94a3b8"
-                    style={[styles.input, fieldsDisabled && styles.inputDisabled]}
+                    placeholderTextColor={colors.textFaint}
+                    style={[fs.input, fieldsDisabled && fs.inputDisabled]}
                   />
                 )}
               />
@@ -195,7 +199,7 @@ export default function HeadcountsScreen() {
                     value={field.value}
                     onChangeText={field.onChange}
                     keyboardType="numeric"
-                    style={[styles.input, fieldsDisabled && styles.inputDisabled]}
+                    style={[fs.input, fieldsDisabled && fs.inputDisabled]}
                   />
                 )}
               />
@@ -210,7 +214,7 @@ export default function HeadcountsScreen() {
                     value={field.value}
                     onChangeText={field.onChange}
                     keyboardType="numeric"
-                    style={[styles.input, fieldsDisabled && styles.inputDisabled]}
+                    style={[fs.input, fieldsDisabled && fs.inputDisabled]}
                   />
                 )}
               />
@@ -225,7 +229,7 @@ export default function HeadcountsScreen() {
                     value={field.value}
                     onChangeText={field.onChange}
                     keyboardType="numeric"
-                    style={[styles.input, fieldsDisabled && styles.inputDisabled]}
+                    style={[fs.input, fieldsDisabled && fs.inputDisabled]}
                   />
                 )}
               />
@@ -240,7 +244,7 @@ export default function HeadcountsScreen() {
                     value={field.value}
                     onChangeText={field.onChange}
                     keyboardType="numeric"
-                    style={[styles.input, fieldsDisabled && styles.inputDisabled]}
+                    style={[fs.input, fieldsDisabled && fs.inputDisabled]}
                   />
                 )}
               />
@@ -248,14 +252,14 @@ export default function HeadcountsScreen() {
 
             <FormField label="Team IDs Photo" hint="Optional. Image, PDF, or spreadsheet.">
               <TouchableOpacity
-                style={[styles.outlineButton, (fieldsDisabled || uploadFile.isPending) && styles.disabled]}
+                style={[fs.outlineButton, (fieldsDisabled || uploadFile.isPending) && fs.disabled]}
                 disabled={fieldsDisabled || uploadFile.isPending}
                 onPress={pickFile}
               >
                 {uploadFile.isPending ? (
                   <ActivityIndicator size="small" />
                 ) : (
-                  <Text style={styles.outlineButtonText}>{photo ? "File uploaded — change" : "Choose File"}</Text>
+                  <Text style={fs.outlineButtonText}>{photo ? "File uploaded — change" : "Choose File"}</Text>
                 )}
               </TouchableOpacity>
             </FormField>
@@ -265,12 +269,12 @@ export default function HeadcountsScreen() {
         <View style={{ height: 80 }} />
       </ScrollView>
 
-      <View style={styles.footer}>
+      <View style={fs.footer}>
         <TouchableOpacity
           style={[
-            styles.footerButton,
-            styles.submitButton,
-            (fieldsDisabled || createHeadcount.isPending || !selectedGrade) && styles.disabled,
+            fs.footerButton,
+            fs.submitButton,
+            (fieldsDisabled || createHeadcount.isPending || !selectedGrade) && fs.disabled,
           ]}
           disabled={fieldsDisabled || createHeadcount.isPending || !selectedGrade}
           onPress={onSubmit}
@@ -278,7 +282,7 @@ export default function HeadcountsScreen() {
           {createHeadcount.isPending ? (
             <ActivityIndicator size="small" color="#fff" />
           ) : (
-            <Text style={styles.submitButtonText}>Add Entry</Text>
+            <Text style={fs.submitButtonText}>Add Entry</Text>
           )}
         </TouchableOpacity>
       </View>
@@ -287,36 +291,7 @@ export default function HeadcountsScreen() {
 }
 
 const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: "#f8fafc" },
-  body: { padding: 16, gap: 12 },
-  input: {
-    borderWidth: 1,
-    borderColor: "#e2e8f0",
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    fontSize: 14,
-    color: "#0f172a",
-    backgroundColor: "#fff",
-  },
-  inputDisabled: { backgroundColor: "#f1f5f9", color: "#94a3b8" },
-  outlineButton: { borderWidth: 1, borderColor: "#cbd5e1", borderRadius: 8, paddingVertical: 10, alignItems: "center" },
-  outlineButtonText: { fontSize: 13, fontWeight: "700", color: "#334155" },
-  disabled: { opacity: 0.4 },
   entryRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingVertical: 4 },
   entryText: { fontSize: 13, color: "#334155" },
-  entryMuted: { fontSize: 12, color: "#94a3b8" },
-  linkButton: {
-    backgroundColor: "#fff",
-    borderWidth: 1,
-    borderColor: "#f59e0b",
-    borderRadius: 8,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-  },
-  linkButtonText: { fontSize: 12, fontWeight: "700", color: "#92400e" },
-  footer: { flexDirection: "row", gap: 8, padding: 12, borderTopWidth: 1, borderTopColor: "#e2e8f0", backgroundColor: "#fff" },
-  footerButton: { flex: 1, borderRadius: 10, paddingVertical: 14, alignItems: "center" },
-  submitButton: { backgroundColor: "#0ea5e9" },
-  submitButtonText: { color: "#fff", fontWeight: "700", fontSize: 14 },
+  entryMuted: { fontSize: 12, color: colors.textFaint },
 });
