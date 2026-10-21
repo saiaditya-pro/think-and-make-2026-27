@@ -23,7 +23,6 @@ ALREADY_SUBMITTED_MESSAGE = (
 FORM2_ALREADY_SUBMITTED_MESSAGE = (
     "Form 2 data has already been submitted for this school. Please contact admin to make any changes."
 )
-FORM1_NOT_SUBMITTED_MESSAGE = "Form 1 must be submitted before Form 2."
 
 
 class SchoolViewSet(viewsets.ModelViewSet):
@@ -67,8 +66,6 @@ class SchoolViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=["post"], url_path="submit-form2")
     def submit_form2(self, request, pk=None):
         school = self.get_object()
-        if not school.form1_submitted:
-            raise ValidationError(FORM1_NOT_SUBMITTED_MESSAGE)
         if school.form2_submitted and request.user.role != ADMIN:
             raise ValidationError(FORM2_ALREADY_SUBMITTED_MESSAGE)
 

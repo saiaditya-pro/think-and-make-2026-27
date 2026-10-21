@@ -2,7 +2,6 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Camera, Loader2, MapPin, Package } from "lucide-react";
-import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { useEffect, useRef } from "react";
 import { Controller, useForm, useWatch } from "react-hook-form";
@@ -14,7 +13,7 @@ import { FormStepper } from "@/components/forms/form-stepper";
 import { usePartnerSchoolPicker } from "@/components/forms/partner-school-picker";
 import { SectionCard } from "@/components/forms/section-card";
 import { StatusBanner } from "@/components/forms/status-banner";
-import { Button, buttonVariants } from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { apiErrorMessage } from "@/lib/api-error";
@@ -119,10 +118,9 @@ export function KitsForm() {
   }, [school, existing?.id, form]);
 
   const grades = parseGradesOffered(school);
-  const form1Missing = !!school && !school.form1_submitted;
   const alreadySubmitted = !!existing;
   const locked = alreadySubmitted && !isAdmin;
-  const fieldsDisabled = !schoolId || locked || form1Missing;
+  const fieldsDisabled = !schoolId || locked;
   const errors = form.formState.errors;
 
   const proofPhoto = useWatch({ control: form.control, name: "delivery_proof_photo" });
@@ -158,18 +156,7 @@ export function KitsForm() {
       <SectionCard id="who-and-where" icon={MapPin} title="Who & where">
         {picker}
 
-        {form1Missing && (
-          <StatusBanner
-            title="School Enrollment (Form 1) must be submitted first."
-            action={
-              <Link href="/dashboard/schools/enrollment" className={buttonVariants({ variant: "outline", size: "sm" })}>
-                Go to Form 1
-              </Link>
-            }
-          />
-        )}
-
-        {alreadySubmitted && !form1Missing && (
+        {alreadySubmitted && (
           <StatusBanner
             title="Already submitted for this school."
             body={`Kit handover has already been recorded for this school. ${
@@ -181,7 +168,7 @@ export function KitsForm() {
 
       <FormStepper schoolId={schoolId} current="form5" />
 
-      {school && !form1Missing && (
+      {school && (
         <>
           <SectionCard id="section-delivery" icon={Package} title="Delivery details">
             <Field label="Delivered by" required error={errors.delivered_by?.message}>

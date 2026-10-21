@@ -2,7 +2,6 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { CalendarDays, CheckCircle2, Loader2, MapPin, Plus, Trash2, Users } from "lucide-react";
-import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { useEffect } from "react";
 import { Controller, useFieldArray, useForm, useWatch, type Control } from "react-hook-form";
@@ -13,8 +12,7 @@ import { Field } from "@/components/forms/field";
 import { FormStepper } from "@/components/forms/form-stepper";
 import { usePartnerSchoolPicker } from "@/components/forms/partner-school-picker";
 import { SectionCard } from "@/components/forms/section-card";
-import { StatusBanner } from "@/components/forms/status-banner";
-import { Button, buttonVariants } from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { apiErrorMessage } from "@/lib/api-error";
@@ -246,8 +244,7 @@ export function ContactInfoForm() {
   const watchedTeachers = useWatch({ control: form.control, name: "teachers" });
   const errors = form.formState.errors;
   const grades = parseGradesOffered(school);
-  const form1Missing = !!school && !school.form1_submitted;
-  const fieldsDisabled = !schoolId || locked || form1Missing;
+  const fieldsDisabled = !schoolId || locked;
 
   const onSubmit = form.handleSubmit(async (values) => {
     try {
@@ -262,32 +259,31 @@ export function ContactInfoForm() {
     <form onSubmit={onSubmit} className="space-y-4 pb-24">
       <SectionCard id="who-and-where" icon={MapPin} title="Who & where">
         {picker}
-
-        {form1Missing && (
-          <StatusBanner
-            title="School Enrollment (Form 1) must be submitted first."
-            action={
-              <Link href="/dashboard/schools/enrollment" className={buttonVariants({ variant: "outline", size: "sm" })}>
-                Go to Form 1
-              </Link>
-            }
-          />
-        )}
       </SectionCard>
 
       <FormStepper schoolId={schoolId} current="form2" />
 
-      {school && !form1Missing && (
+      {school && (
         <>
           <SectionCard id="section-prefill" icon={CheckCircle2} title="Prefilled from Form 1">
             <Field label="Google Maps location">
-              <Input readOnly value={school.maps_link} className="bg-muted/50" />
+              <Input readOnly value={school.maps_link} placeholder="Not filled in Form 1 yet" className="bg-muted/50" />
             </Field>
             <Field label="Principal">
-              <Input readOnly value={`${school.principal_name} · ${school.principal_phone}`} className="bg-muted/50" />
+              <Input
+                readOnly
+                value={[school.principal_name, school.principal_phone].filter(Boolean).join(" · ")}
+                placeholder="Not filled in Form 1 yet"
+                className="bg-muted/50"
+              />
             </Field>
             <Field label="Grades participating">
-              <Input readOnly value={grades.map((g) => `Grade ${g}`).join(", ")} className="bg-muted/50" />
+              <Input
+                readOnly
+                value={school.grades_offered ? grades.map((g) => `Grade ${g}`).join(", ") : ""}
+                placeholder="Not filled in Form 1 yet"
+                className="bg-muted/50"
+              />
             </Field>
           </SectionCard>
 

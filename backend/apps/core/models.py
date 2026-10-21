@@ -43,3 +43,39 @@ class AuditLog(models.Model):
 
     def __str__(self) -> str:
         return f"{self.action} on {self.entity_type}:{self.entity_id} by {self.user_id}"
+
+
+class SyncRun(models.Model):
+    """One pull of the Google Sheets into the database -- see apps.core.sync."""
+
+    RUNNING = "running"
+    SUCCESS = "success"
+    PARTIAL = "partial"
+    FAILED = "failed"
+    STATUS_CHOICES = [
+        (RUNNING, "Running"),
+        (SUCCESS, "Success"),
+        (PARTIAL, "Partial (some partners failed)"),
+        (FAILED, "Failed"),
+    ]
+
+    SCHEDULE = "schedule"
+    MANUAL = "manual"
+    COMMAND = "command"
+    TRIGGER_CHOICES = [(SCHEDULE, "Schedule"), (MANUAL, "Manual"), (COMMAND, "Command")]
+
+    started_at = models.DateTimeField(auto_now_add=True)
+    finished_at = models.DateTimeField(null=True, blank=True)
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default=RUNNING)
+    trigger = models.CharField(max_length=10, choices=TRIGGER_CHOICES, default=SCHEDULE)
+    triggered_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL, related_name="+"
+    )
+    counts = models.JSONField(default=dict, blank=True, help_text="{partner: {tab: rows imported}}")
+    log = models.TextField(blank=True, help_text="Warnings and errors from the run.")
+
+    class Meta:
+        ordering = ["-started_at"]
+
+    def __str__(self) -> str:
+        return f"Sync {self.started_at:%Y-%m-%d %H:%M} ({self.status})"

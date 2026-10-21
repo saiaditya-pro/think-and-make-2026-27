@@ -161,3 +161,27 @@ export type Cluster = {
   cluster_number: number;
   teams: Team[];
 };
+
+export type SyncRun = {
+  id: number;
+  started_at: string;
+  finished_at: string | null;
+  status: "running" | "success" | "partial" | "failed";
+  trigger: "schedule" | "manual" | "command";
+  counts: Record<string, Record<string, number>>;
+  log: string;
+};
+
+export type SyncStatus = { configured: boolean; last_run: SyncRun | null };
+
+export type SessionObservation = {
+  id: number;
+  school: number;
+  grade: number;
+  section: string;
+  unit: 1 | 2 | 3;
+  session_no: number;
+  observed_by: string;
+  date: string;
+  notes: string;
+};

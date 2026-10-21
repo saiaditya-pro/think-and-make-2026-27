@@ -4,8 +4,10 @@ import { useSession } from "next-auth/react";
 
 import { StatusBanner } from "@/components/forms/status-banner";
 import { Card, CardContent } from "@/components/ui/card";
+import { usePartner } from "@/hooks/use-school-lookup";
 
 import { PercentPill, StatusPill } from "./status-pill";
+import { SyncStatus } from "./sync-status";
 import { useReportsSummary } from "./use-reports-data";
 
 function KpiCard({ label, value, sublabel }: { label: string; value: string; sublabel?: string }) {
@@ -27,10 +29,11 @@ function greeting() {
   return "Good evening";
 }
 
-export function ReportsDashboard() {
+export function ReportsDashboard({ partnerId }: { partnerId?: string } = {}) {
   const { data: session } = useSession();
   const isSchool = session?.user.role === "school";
-  const { data, isLoading, error } = useReportsSummary();
+  const { data, isLoading, error } = useReportsSummary(partnerId);
+  const { partner } = usePartner(partnerId);
 
   return (
     <div className="space-y-4">
@@ -38,8 +41,14 @@ export function ReportsDashboard() {
         <h1 className="text-lg font-bold text-slate-800" suppressHydrationWarning>
           {greeting()}, {session?.user.displayName ?? "there"} 👋
         </h1>
-        <p className="text-sm text-slate-500">Here&apos;s how the program is progressing this week.</p>
+        <p className="text-sm text-slate-500">
+          {partnerId
+            ? `Here's how ${partner?.name ?? "this partner"}'s schools are progressing this week.`
+            : "Here's how the program is progressing this week."}
+        </p>
       </div>
+
+      {!isSchool && session && <SyncStatus isAdmin={session.user.role === "admin"} />}
 
       {isLoading && <p className="text-sm text-slate-500">Loading dashboard…</p>}
       {(error || (!isLoading && !data)) && (

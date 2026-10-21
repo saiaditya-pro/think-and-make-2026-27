@@ -264,3 +264,27 @@ def test_headcount_submit_returns_null_warning_when_form4_not_started(iif_staff_
     )
     assert resp.status_code == 201
     assert resp.json()["mismatch_warning"] is None
+
+
+@pytest.mark.django_db
+def test_reports_summary_filters_by_partner(admin_client, two_schools):
+    from apps.programs.models import Partner, ProgramInstance
+    from apps.schools.models import School
+
+    school_a, school_b = two_schools
+    other_partner = Partner.objects.create(name="Miso")
+    other_instance = ProgramInstance.objects.create(code="MISO-2026", partner=other_partner, year=2026)
+    school_c = School.objects.create(instance=other_instance, school_code="MC", name="School C")
+    for school in (school_a, school_b, school_c):
+        reconcile_school(school)
+
+    resp = admin_client.get(f"/api/v1/reports/summary/?partner={other_partner.id}")
+    assert resp.status_code == 200
+    body = resp.json()
+    assert body["kpis"]["schools_enrolled"] == 1
+    assert [row["school"] for row in body["schools"]] == [school_c.id]
+
+    resp = admin_client.get(f"/api/v1/reports/summary/?partner={school_a.instance.partner_id}")
+    assert {row["school"] for row in resp.json()["schools"]} == {school_a.id, school_b.id}
+
+    assert admin_client.get("/api/v1/reports/summary/?partner=abc").status_code == 400

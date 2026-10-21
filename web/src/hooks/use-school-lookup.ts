@@ -15,6 +15,13 @@ export function usePartners() {
   });
 }
 
+/** Looks the partner up in the cached partner list rather than a separate request. */
+export function usePartner(partnerId: string | undefined) {
+  const partnersQuery = usePartners();
+  const partner = partnerId ? partnersQuery.data?.results.find((p) => String(p.id) === partnerId) : undefined;
+  return { partner, partnersQuery };
+}
+
 export function useSchoolsByPartner(partnerId: string) {
   const { data: session } = useSession();
   const accessToken = session?.accessToken;

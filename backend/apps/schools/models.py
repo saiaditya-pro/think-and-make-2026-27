@@ -110,6 +110,7 @@ class SessionSchedule(TimeStampedModel):
     DAY_CHOICES = [
         ("mon", "Monday"), ("tue", "Tuesday"), ("wed", "Wednesday"),
         ("thu", "Thursday"), ("fri", "Friday"), ("sat", "Saturday"),
+        ("sun", "Sunday"),
     ]
 
     school = models.ForeignKey(School, on_delete=models.CASCADE, related_name="session_schedules")

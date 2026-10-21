@@ -1,9 +1,17 @@
 .venv/
 __pycache__/
 *.pyc
-db.sqlite3
+db.sqlite3*
 media/
 .env
 staticfiles/
 .pytest_cache/
 *.log
+
+# Google service-account keys for the Sheets sync
+secrets/
+*service-account*.json
+
+
+# Google Cloud service account credentials
+backend/secrets/

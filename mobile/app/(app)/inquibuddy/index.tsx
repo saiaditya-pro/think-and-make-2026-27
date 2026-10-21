@@ -38,7 +38,7 @@ export default function SelectGradeSectionScreen() {
   return (
     <View style={styles.screen}>
       <ScreenHeader eyebrow="INSIGHTS" title="InquiBuddy · Select Grade & Section" onMenuPress={openDrawer} />
-      <View style={styles.body}>
+      <ScrollView contentContainerStyle={styles.body}>
         {clustersQuery.isLoading && <ActivityIndicator />}
 
         <Text style={styles.label}>Grade</Text>
@@ -79,7 +79,7 @@ export default function SelectGradeSectionScreen() {
         >
           <Text style={styles.buttonText}>View Teams &rarr;</Text>
         </TouchableOpacity>
-      </View>
+      </ScrollView>
     </View>
   );
 }

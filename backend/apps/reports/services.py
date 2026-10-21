@@ -11,6 +11,8 @@ Form 3 submit (``reconcile_section``).
 
 import logging
 
+from django.db import close_old_connections
+
 from apps.reports.models import SchoolProgress
 
 logger = logging.getLogger(__name__)
@@ -153,3 +155,6 @@ def reconcile_all_schools() -> None:
             reconcile_school(school)
         except Exception:
             logger.exception("Failed to reconcile SchoolProgress for school %s", school.pk)
+            # If the DB connection itself dropped (e.g. Supabase pooler), discard
+            # it so the next school reconnects instead of failing the same way.
+            close_old_connections()

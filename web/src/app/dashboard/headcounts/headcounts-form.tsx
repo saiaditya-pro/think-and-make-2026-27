@@ -2,7 +2,6 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { BarChart3, CheckCircle2, LayoutGrid, Loader2, MapPin } from "lucide-react";
-import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { useEffect, useRef, useState } from "react";
 import { Controller, useForm, useWatch } from "react-hook-form";
@@ -14,7 +13,7 @@ import { FormStepper } from "@/components/forms/form-stepper";
 import { usePartnerSchoolPicker } from "@/components/forms/partner-school-picker";
 import { SectionCard } from "@/components/forms/section-card";
 import { StatusBanner } from "@/components/forms/status-banner";
-import { Button, buttonVariants } from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { apiErrorMessage } from "@/lib/api-error";
@@ -115,8 +114,7 @@ export function HeadcountsForm() {
   const uploadFile = useUploadHeadcountFile(schoolId);
 
   const grades = parseGradesOffered(school);
-  const form2Missing = !!school && !school.form2_submitted;
-  const fieldsDisabled = !schoolId || form2Missing;
+  const fieldsDisabled = !schoolId;
   const errors = form.formState.errors;
   const photo = useWatch({ control: form.control, name: "teams_info_photo" });
   const selectedGrade = useWatch({ control: form.control, name: "grade" });
@@ -156,25 +154,11 @@ export function HeadcountsForm() {
     <form onSubmit={onSubmit} className="space-y-4 pb-24">
       <SectionCard id="who-and-where" icon={MapPin} title="Who & where">
         {picker}
-
-        {form2Missing && (
-          <StatusBanner
-            title="Schools Contact Info (Form 2) must be submitted first."
-            action={
-              <Link
-                href="/dashboard/schools/contact-info"
-                className={buttonVariants({ variant: "outline", size: "sm" })}
-              >
-                Go to Form 2
-              </Link>
-            }
-          />
-        )}
       </SectionCard>
 
       <FormStepper schoolId={schoolId} current="form3" />
 
-      {school && !form2Missing && entries.length > 0 && (
+      {school && entries.length > 0 && (
         <SectionCard id="section-tracker" icon={CheckCircle2} title="Entries so far">
           <div className="space-y-1.5">
             {entries.map((entry) => (
@@ -189,7 +173,7 @@ export function HeadcountsForm() {
         </SectionCard>
       )}
 
-      {school && !form2Missing && selectedGrade && selectedSection && (
+      {school && selectedGrade && selectedSection && (
         <SectionCard id="section-live" icon={BarChart3} title={`Grade ${selectedGrade} · Section ${selectedSection} — recorded so far`}>
           <div className="space-y-2">
             <CountBar label="Students" value={liveStudents} max={liveMax} colorClass="bg-brand-teal" />
@@ -207,7 +191,7 @@ export function HeadcountsForm() {
         />
       )}
 
-      {school && !form2Missing && (
+      {school && (
         <SectionCard id="section-entry" icon={LayoutGrid} title="New entry">
           <Controller
             control={form.control}

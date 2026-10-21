@@ -2,7 +2,6 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { CheckCircle2, LayoutGrid, Loader2, MapPin, Plus, Star, Trash2, Users } from "lucide-react";
-import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { Controller, useFieldArray, useForm, useWatch } from "react-hook-form";
 import { toast } from "sonner";
@@ -13,7 +12,7 @@ import { FormStepper } from "@/components/forms/form-stepper";
 import { usePartnerSchoolPicker } from "@/components/forms/partner-school-picker";
 import { SectionCard } from "@/components/forms/section-card";
 import { StatusBanner } from "@/components/forms/status-banner";
-import { Button, buttonVariants } from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
@@ -130,9 +129,8 @@ export function SLSelectionForm() {
   const bulkSubmit = useBulkSubmitSLSelections(schoolId);
 
   const grades = parseGradesOffered(school);
-  const form2Missing = !!school && !school.form2_submitted;
   const locked = duplicateBlocked && !isAdmin;
-  const fieldsDisabled = !schoolId || form2Missing || locked;
+  const fieldsDisabled = !schoolId || locked;
   const errors = form.formState.errors;
 
   const teachersForGrade = (school?.teachers ?? []).filter((t) =>
@@ -156,25 +154,11 @@ export function SLSelectionForm() {
     <form onSubmit={onSubmit} className="space-y-4 pb-24">
       <SectionCard id="who-and-where" icon={MapPin} title="Who & where">
         {picker}
-
-        {form2Missing && (
-          <StatusBanner
-            title="Schools Contact Info (Form 2) must be submitted first."
-            action={
-              <Link
-                href="/dashboard/schools/contact-info"
-                className={buttonVariants({ variant: "outline", size: "sm" })}
-              >
-                Go to Form 2
-              </Link>
-            }
-          />
-        )}
       </SectionCard>
 
       <FormStepper schoolId={schoolId} current="form4" />
 
-      {school && !form2Missing && (
+      {school && (
         <SectionCard id="section-grade" icon={LayoutGrid} title="Grade & section">
           <Controller
             control={form.control}
@@ -225,7 +209,7 @@ export function SLSelectionForm() {
         </SectionCard>
       )}
 
-      {school && !form2Missing && grade && section.trim() && !locked && (
+      {school && grade && section.trim() && !locked && (
         <>
           <SectionCard id="section-teacher" icon={Users} title="Teacher">
             {teachersForGrade.length > 0 && (

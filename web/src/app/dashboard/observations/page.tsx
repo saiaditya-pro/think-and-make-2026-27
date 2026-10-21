@@ -1,5 +1,11 @@
-import { ComingSoonPage } from "@/components/coming-soon";
+import { DashboardMain } from "@/components/dashboard-main";
+
+import { ObservationsForm } from "./observations-form";
 
 export default function Page() {
-  return <ComingSoonPage title="Unit 1 Session Observations" />;
+  return (
+    <DashboardMain title="Session Observations">
+      <ObservationsForm />
+    </DashboardMain>
+  );
 }

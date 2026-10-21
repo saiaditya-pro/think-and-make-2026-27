@@ -1,5 +1,5 @@
 import { useRouter, type Href } from "expo-router";
-import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { ActivityIndicator, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 import { ScreenHeader } from "@/components/screen-header";
 import { StatusBanner } from "@/components/forms/status-banner";
@@ -36,8 +36,12 @@ function KpiCard({
       {sublabel && <Text style={styles.kpiSublabel}>{sublabel}</Text>}
     </Card>
   );
-  if (!onPress) return card;
-  return <TouchableOpacity onPress={onPress}>{card}</TouchableOpacity>;
+  if (!onPress) return <View style={styles.kpiCardWrapper}>{card}</View>;
+  return (
+    <TouchableOpacity style={styles.kpiCardWrapper} onPress={onPress}>
+      {card}
+    </TouchableOpacity>
+  );
 }
 
 function SchoolRow({ row }: { row: SchoolProgress }) {
@@ -79,7 +83,7 @@ export default function DashboardScreen() {
   return (
     <View style={styles.screen}>
       <ScreenHeader eyebrow="INQUI-LAB · THINK & MAKE" title="Dashboard" onMenuPress={openDrawer} />
-      <View style={styles.body}>
+      <ScrollView contentContainerStyle={styles.body}>
         <Text style={styles.greeting}>
           {greeting()}, {auth?.user.display_name ?? auth?.user.username} 👋
         </Text>
@@ -135,20 +139,27 @@ export default function DashboardScreen() {
             )}
           </>
         )}
-      </View>
+      </ScrollView>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.brandBg },
-  body: { flex: 1, padding: spacing.lg, gap: spacing.md },
+  body: { padding: spacing.lg, paddingBottom: spacing.xl * 2, gap: spacing.md },
   greeting: { fontSize: 18, fontWeight: "700", color: colors.text },
   subtitle: { fontSize: 13, color: colors.textMuted, marginTop: -spacing.sm },
   errorText: { fontSize: 13, color: colors.destructive, marginTop: spacing.md },
   emptyText: { fontSize: 13, color: colors.textMuted },
-  kpiGrid: { flexDirection: "row", flexWrap: "wrap", gap: spacing.sm, marginBottom: spacing.sm },
-  kpiCard: { width: "47%", padding: spacing.md, gap: 2 },
+  kpiGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "space-between",
+    rowGap: spacing.sm,
+    marginBottom: spacing.sm,
+  },
+  kpiCardWrapper: { width: "48%" },
+  kpiCard: { padding: spacing.md, gap: 2 },
   kpiLabel: { fontSize: 11, fontWeight: "600", color: colors.textMuted },
   kpiValue: { fontSize: 22, fontWeight: "800", color: colors.text },
   kpiSublabel: { fontSize: 11, color: colors.textFaint },

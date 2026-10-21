@@ -5,6 +5,7 @@ import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { usePartnerRouteId } from "@/hooks/use-partner-route";
 import { usePartners, useSchoolDetail, useSchoolsByPartner } from "@/hooks/use-school-lookup";
 import type { School } from "@/lib/types";
 
@@ -27,12 +28,18 @@ export function usePartnerSchoolPicker({
   /** Called after the partner (and thus school selection) is reset — e.g. to reset a dependent form. */
   onPartnerChange?: () => void;
 }) {
-  const { partnerId, schoolId, setPartnerId, setSchoolId } = useSchoolSelection();
+  const selection = useSchoolSelection();
+  const { schoolId, setPartnerId, setSchoolId } = selection;
+  // Inside /dashboard/partners/[partnerId] the partner comes from the URL and can't be changed here.
+  const routePartnerId = usePartnerRouteId();
+  const partnerId = routePartnerId ?? selection.partnerId;
 
   const partnersQuery = usePartners();
   const schoolsQuery = useSchoolsByPartner(partnerId);
   const schoolDetailQuery = useSchoolDetail(schoolId);
   const school = schoolDetailQuery.data;
+
+  const partnerName = partnersQuery.data?.results.find((p) => String(p.id) === partnerId)?.name;
 
   const alreadySubmitted = submittedField ? !!school?.[submittedField] : false;
   const locked = alreadySubmitted && !isAdmin;
@@ -45,23 +52,27 @@ export function usePartnerSchoolPicker({
 
   const picker = (
     <>
-      <Field label="Select Partner" required>
-        <Select
-          items={partnersQuery.data?.results.map((p) => ({ value: String(p.id), label: p.name })) ?? []}
-          value={partnerId}
-          onValueChange={(v) => handlePartnerChange(v ?? "")}
-        >
-          <SelectTrigger className="w-full">
-            <SelectValue placeholder="Select..." />
-          </SelectTrigger>
-          <SelectContent>
-            {partnersQuery.data?.results.map((p) => (
-              <SelectItem key={p.id} value={String(p.id)}>
-                {p.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+      <Field label={routePartnerId ? "Partner" : "Select Partner"} required>
+        {routePartnerId ? (
+          <Input readOnly value={partnerName ?? ""} placeholder="Loading..." className="bg-muted/50" />
+        ) : (
+          <Select
+            items={partnersQuery.data?.results.map((p) => ({ value: String(p.id), label: p.name })) ?? []}
+            value={partnerId}
+            onValueChange={(v) => handlePartnerChange(v ?? "")}
+          >
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Select..." />
+            </SelectTrigger>
+            <SelectContent>
+              {partnersQuery.data?.results.map((p) => (
+                <SelectItem key={p.id} value={String(p.id)}>
+                  {p.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        )}
       </Field>
 
       {partnersQuery.isError && (

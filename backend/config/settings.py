@@ -2,6 +2,7 @@
 Django settings for the Think & Make 2026-27 backend.
 """
 
+import sys
 from datetime import timedelta
 from pathlib import Path
 
@@ -74,14 +75,26 @@ TEMPLATES = [
 WSGI_APPLICATION = "config.wsgi.application"
 
 # --- Database ---
-# Local dev defaults to SQLite; set DATABASE_URL (Supabase Postgres connection
-# string) in the environment for staging/production.
+# Set DATABASE_URL in backend/.env to the Supabase *Session pooler* connection
+# string; without it the backend falls back to the local SQLite file. Read via
+# decouple (not dj_database_url.config, which only sees real env vars and
+# would silently ignore .env).
+DATABASE_URL = config("DATABASE_URL", default=f"sqlite:///{BASE_DIR / 'db.sqlite3'}")
+_is_postgres = DATABASE_URL.startswith(("postgres://", "postgresql://"))
 DATABASES = {
-    "default": dj_database_url.config(
-        default=f"sqlite:///{BASE_DIR / 'db.sqlite3'}",
+    "default": dj_database_url.parse(
+        DATABASE_URL,
         conn_max_age=600,
+        # Supabase pooler connections can drop while idle; check before reuse.
+        conn_health_checks=_is_postgres,
+        ssl_require=_is_postgres,
     )
 }
+
+# pytest builds its own throwaway database. Keep that on in-memory SQLite so
+# tests stay fast/offline and never try to CREATE DATABASE on Supabase.
+if "pytest" in sys.modules:
+    DATABASES["default"] = {"ENGINE": "django.db.backends.sqlite3", "NAME": ":memory:"}
 
 AUTH_USER_MODEL = "accounts.User"
 
@@ -132,8 +145,10 @@ SIMPLE_JWT = {
 CORS_ALLOWED_ORIGINS = config(
     "CORS_ALLOWED_ORIGINS",
     default="http://localhost:3000",
+    
     cast=Csv(),
 )
+
 CORS_ALLOW_CREDENTIALS = True
 
 # --- Celery ---
@@ -154,7 +169,20 @@ CELERY_BEAT_SCHEDULE = {
         "task": "apps.reports.tasks.reconcile_school_progress",
         "schedule": crontab(hour=2, minute=0),
     },
+    "sync-google-sheets": {
+        "task": "apps.core.tasks.sync_google_sheets",
+        "schedule": timedelta(minutes=config("SHEETS_SYNC_INTERVAL_MIN", default=15, cast=int)),
+    },
 }
+
+# --- Google Sheets live sync (apps.core.sync) ---
+# The service account must be shared (Viewer) on the master sheet and on every
+# partner sheet listed in its PartnerConfig tab.
+GOOGLE_SERVICE_ACCOUNT_FILE = config("GOOGLE_SERVICE_ACCOUNT_FILE", default="")
+GOOGLE_SERVICE_ACCOUNT_JSON = config("GOOGLE_SERVICE_ACCOUNT_JSON", default="")
+GOOGLE_MASTER_SHEET_ID = config("GOOGLE_MASTER_SHEET_ID", default="")
+SHEETS_SYNC_ENABLED = config("SHEETS_SYNC_ENABLED", default=True, cast=bool)
+SHEETS_SYNC_YEAR = config("SHEETS_SYNC_YEAR", default=2026, cast=int)
 
 # --- File storage (Supabase Storage, S3-compatible) ---
 # Local dev falls back to Django's default filesystem storage so the app runs

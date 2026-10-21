@@ -15,6 +15,11 @@ docs/      Local-only reference documents (real school PII + legacy login
            for these files directly if you need them.
 ```
 
+## Docs
+
+- [BACKEND_ARCHITECTURE.md](BACKEND_ARCHITECTURE.md) — backend structure, data model, roles, and how the Google Sheets sync works
+- [RUNNING_THE_WEBSITE.md](RUNNING_THE_WEBSITE.md) — step-by-step guide to run the backend + website locally
+
 ## Running everything locally
 
 ```bash
@@ -40,22 +45,57 @@ cp .env.example .env   # set EXPO_PUBLIC_API_URL to your LAN IP for a real devic
 npx expo start
 ```
 
-Import the real program data (schools, kits, SL selection, headcounts) from
-the legacy spreadsheet:
+## Live data from Google Sheets
+
+The backend pulls every partner's Google Sheet into the database: first the
+master sheet (T&M_PWA_Master — `Schools_List`, `Users`, `PartnerConfig`), then
+each partner sheet listed in `PartnerConfig` (`School_Enrollment`,
+`Schools_Contact_Info`, `Kits_Info`, `SL_Selection_Assessment`,
+`Students_Count_Info`). Re-running is safe; rows are upserted by Submission ID.
+
+One-time setup:
+
+1. In Google Cloud console, enable the **Google Sheets API**, create a
+   **service account**, and save its JSON key as
+   `backend/secrets/google-service-account.json` (gitignored).
+2. Share the master sheet **and every partner sheet** with the service
+   account's email (Viewer).
+3. In `backend/.env` set `GOOGLE_SERVICE_ACCOUNT_FILE` and
+   `GOOGLE_MASTER_SHEET_ID` (see `.env.example`).
+
+Then:
 
 ```bash
 cd backend
+python manage.py sync_google_sheets          # first load / manual run
+
+# keep it live: Redis + Celery worker + beat (syncs every SHEETS_SYNC_INTERVAL_MIN, default 15)
+docker run -p 6379:6379 redis                 # or install Memurai on Windows
+celery -A config worker -l info -P solo
+celery -A config beat -l info
+```
+
+No Redis? Schedule `python manage.py sync_google_sheets` with Windows Task
+Scheduler instead. Admins can also trigger a sync from the dashboard's
+**Sync now** button or Django admin → Sync runs → *Sync from Google Sheets
+now*. Every run is logged there with per-partner counts and warnings.
+
+Login accounts from the `Users` tab are created with their sheet PIN as the
+initial password; later syncs never reset a password.
+
+Offline alternative, for one partner's xlsx export:
+
+```bash
 python manage.py import_legacy_sheets --file "../docs/Datla-Think & Make _ 2026-2027.xlsx"
 ```
 
 ## Status
 
-Built and verified this session: full Django data model + RBAC + tests
-(`backend/`, 9/9 tests passing), the legacy-sheet import command (run
-against the real xlsx — 7 schools, 59 SL selections, 23 headcounts, 7 kit
-deliveries imported cleanly), the Next.js login + dashboard shell + schools
-list + full InquiBuddy flow, and the Expo login + InquiBuddy flow. The
-InquiBuddy PDF report and the other web dashboard cards (Students Count
-Info, SL Selection Assessment, Kits Handover Info, School Dashboard, Session
-Observations) are scaffolded with working APIs but still need their UI
-built out — see `web/src/components/coming-soon.tsx`.
+All web forms are built: Enrollment, Contact Info, Headcounts, SL Selection,
+Kits, InquiBuddy, Session Observations, plus the Reports dashboard and
+schools list. InquiBuddy PDF reports need the GTK3 runtime for WeasyPrint on
+Windows, and AI feedback needs `GEMINI_API_KEY`.
+
+Not synced from Sheets yet: the separate Student DB, Session Observation and
+Idea Feedback spreadsheets referenced in `PartnerConfig`. Their column
+layouts aren't in the local exports.

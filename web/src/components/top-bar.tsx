@@ -4,10 +4,13 @@ import { usePathname } from "next/navigation";
 
 import { SignOutButton } from "@/components/sign-out-button";
 import { SidebarTrigger } from "@/components/ui/sidebar";
+import { usePartnerRouteId } from "@/hooks/use-partner-route";
+import { usePartner } from "@/hooks/use-school-lookup";
 
 const ROLE_LABEL: Record<string, string> = { admin: "ADMIN", iif_staff: "IIF", school: "SCHOOL" };
 
 const BREADCRUMBS: Record<string, [string, string?]> = {
+  "/dashboard": ["Partners"],
   "/dashboard/reports": ["Dashboard"],
   "/dashboard/schools": ["Schools"],
   "/dashboard/schools/enrollment": ["Forms", "School Enrollment"],
@@ -19,9 +22,31 @@ const BREADCRUMBS: Record<string, [string, string?]> = {
   "/dashboard/observations": ["Insights", "Observations"],
 };
 
+/** Page names under `/dashboard/partners/[partnerId]/<slug>`; the section is the partner's name. */
+const PARTNER_PAGES: Record<string, string> = {
+  "": "Dashboard",
+  enrollment: "School Enrollment",
+  "contact-info": "Schools Contact Info",
+  headcounts: "Students Count Info",
+  "sl-selection": "SL Selection Assessment",
+  kits: "Kits Handover",
+  observations: "Observations",
+};
+
 export function TopBar({ role }: { role: string }) {
   const pathname = usePathname();
-  const [section, page] = BREADCRUMBS[pathname] ?? ["Dashboard"];
+  const partnerId = usePartnerRouteId();
+  const { partner } = usePartner(partnerId);
+
+  let section: string;
+  let page: string | undefined;
+  if (partnerId) {
+    const slug = pathname.split("/").slice(4).join("/");
+    section = partner?.name ?? "Partner";
+    page = PARTNER_PAGES[slug];
+  } else {
+    [section, page] = BREADCRUMBS[pathname] ?? ["Dashboard"];
+  }
 
   return (
     <header className="flex items-center justify-between gap-3 border-b border-slate-200 bg-white px-4 py-3 md:px-6">

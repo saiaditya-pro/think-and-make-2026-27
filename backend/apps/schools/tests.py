@@ -157,11 +157,12 @@ def _form2_payload(grades=(6, 7), **overrides):
 
 
 @pytest.mark.django_db
-def test_submit_form2_requires_form1_submitted_first(iif_staff_client, two_schools):
+def test_submit_form2_allowed_before_form1(iif_staff_client, two_schools):
+    """Forms can be filled in any order -- Form 2 no longer waits on Form 1."""
     school_a, _ = two_schools
     resp = iif_staff_client.post(f"/api/v1/schools/{school_a.id}/submit-form2/", _form2_payload(), format="json")
-    assert resp.status_code == 400
-    assert "Form 1" in str(resp.json())
+    assert resp.status_code == 200
+    assert resp.json()["form2_submitted"] is True
 
 
 @pytest.mark.django_db

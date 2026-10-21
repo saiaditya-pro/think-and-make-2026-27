@@ -1,3 +1,4 @@
+from rest_framework.exceptions import ValidationError
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -22,5 +23,12 @@ class ReportsSummaryView(APIView):
         qs = scope_queryset_to_role(
             SchoolProgress.objects.select_related("school"), request, school_field="school_id"
         )
-        kpis = None if request.user.role == SCHOOL else selectors.compute_kpis(qs)
+        partner_param = request.query_params.get("partner")
+        partner_id = None
+        if partner_param:
+            if not partner_param.isdigit():
+                raise ValidationError({"partner": "Must be a partner id."})
+            partner_id = int(partner_param)
+            qs = qs.filter(school__instance__partner_id=partner_id)
+        kpis = None if request.user.role == SCHOOL else selectors.compute_kpis(qs, partner_id)
         return Response({"kpis": kpis, "schools": SchoolProgressSerializer(qs, many=True).data})
