@@ -39,12 +39,17 @@ def is_configured() -> bool:
     )
 
 
+def sync_in_progress() -> bool:
+    """A run still marked RUNNING; ones older than STALE_RUN_AFTER are assumed crashed."""
+    return SyncRun.objects.filter(
+        status=SyncRun.RUNNING, started_at__gte=timezone.now() - STALE_RUN_AFTER
+    ).exists()
+
+
 def run_sync(trigger=SyncRun.SCHEDULE, user=None, source_factory=GoogleSheetsSource) -> SyncRun:
     if not settings.GOOGLE_MASTER_SHEET_ID:
         raise SheetsConfigError("Set GOOGLE_MASTER_SHEET_ID in backend/.env.")
-    if SyncRun.objects.filter(
-        status=SyncRun.RUNNING, started_at__gte=timezone.now() - STALE_RUN_AFTER
-    ).exists():
+    if sync_in_progress():
         raise SyncAlreadyRunning("Another Google Sheets sync is still running.")
 
     run = SyncRun.objects.create(trigger=trigger, triggered_by=user)

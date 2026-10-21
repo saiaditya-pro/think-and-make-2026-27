@@ -1,6 +1,7 @@
 from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
+from django.http import HttpResponse
 from django.urls import include, path
 
 api_v1 = [
@@ -18,7 +19,13 @@ api_v1 = [
     path("", include("apps.core.urls")),
 ]
 
+def healthz(request):
+    """Render's health check: no auth and no DB, so it stays cheap."""
+    return HttpResponse("ok", content_type="text/plain")
+
+
 urlpatterns = [
+    path("healthz", healthz),
     path("admin/", admin.site.urls),
     path("api/v1/", include(api_v1)),
 ]

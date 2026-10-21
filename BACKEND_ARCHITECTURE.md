@@ -291,7 +291,7 @@ Where to read the log:
 | Trigger | How |
 |---|---|
 | Schedule | Celery beat runs `apps.core.tasks.sync_google_sheets` every `SHEETS_SYNC_INTERVAL_MIN` minutes. Skipped if `SHEETS_SYNC_ENABLED=False` |
-| Website | Admins see **Sync now** next to the sync status on the dashboard. It calls `POST /api/v1/sync/run/`, which queues the job, or runs it immediately if Redis is unreachable |
+| Website | Admins see **Sync now** next to the sync status on the dashboard. It calls `POST /api/v1/sync/run/`, which queues the job, or, if Redis is unreachable (e.g. Render free plan), runs it in a background thread of the web process. Either way it returns `202` and the dashboard picks up the result by polling |
 | Django admin | Core → Sync runs → action "Sync from Google Sheets now" (runs immediately) |
 | Command line | `python manage.py sync_google_sheets` |
 

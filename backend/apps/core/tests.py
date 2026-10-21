@@ -224,6 +224,50 @@ def test_sync_status_requires_staff_and_run_requires_admin(iif_staff_client, sch
 
 
 @pytest.mark.django_db
+def test_sync_run_without_broker_starts_background_thread(admin_client, settings, monkeypatch):
+    from apps.core import views
+    from apps.core.tasks import sync_google_sheets
+
+    settings.GOOGLE_MASTER_SHEET_ID = "master"
+    settings.GOOGLE_SERVICE_ACCOUNT_JSON = "{}"
+
+    def broker_down(*args, **kwargs):
+        raise ConnectionError("no broker")
+
+    started = []
+
+    class FakeThread:
+        def __init__(self, target, args, daemon):
+            started.append((target, daemon))
+
+        def start(self):
+            pass
+
+    monkeypatch.setattr(sync_google_sheets, "apply_async", broker_down)
+    monkeypatch.setattr(views.threading, "Thread", FakeThread)
+
+    resp = admin_client.post("/api/v1/sync/run/")
+    assert resp.status_code == 202
+    assert resp.json() == {"queued": True}
+    assert started == [(views._run_sync_in_background, True)]
+
+
+@pytest.mark.django_db
+def test_sync_run_refuses_while_another_sync_is_running(admin_client, settings):
+    settings.GOOGLE_MASTER_SHEET_ID = "master"
+    settings.GOOGLE_SERVICE_ACCOUNT_JSON = "{}"
+    SyncRun.objects.create(trigger=SyncRun.MANUAL)  # status defaults to running
+
+    assert admin_client.post("/api/v1/sync/run/").status_code == 409
+
+
+def test_healthz_needs_no_auth(client):
+    resp = client.get("/healthz")
+    assert resp.status_code == 200
+    assert resp.content == b"ok"
+
+
+@pytest.mark.django_db
 @pytest.mark.skipif(not (DOCS / "Datla-Think & Make _ 2026-2027.xlsx").exists(), reason="local export not present")
 def test_real_datla_export_imports(instance):
     counts = PartnerSheetImporter(XlsxSource(DOCS / "Datla-Think & Make _ 2026-2027.xlsx"), instance).run()

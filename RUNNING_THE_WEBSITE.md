@@ -160,3 +160,52 @@ The Expo app in `mobile/` uses the same backend. Run `npm install`, copy `.env.e
 - set `EXPO_PUBLIC_API_URL` to your computer's LAN IP
 - run Django with `python manage.py runserver 0.0.0.0:8000`
 - add that IP to `DJANGO_ALLOWED_HOSTS`
+
+## 10. Deploy the backend to Render
+
+The backend is ready for a Render **Web Service** on the Python runtime. It uses `backend/build.sh`, `gunicorn`, WhiteNoise for the admin's static files, and a `/healthz` endpoint.
+
+### Service settings
+
+| Field | Value |
+|---|---|
+| Branch | `new-version` |
+| Region | **Singapore**: closest to the Supabase database (Seoul) and to users in India |
+| Root Directory | `backend` |
+| Build Command | `./build.sh` (installs packages, collects static files, runs migrations) |
+| Start Command | `gunicorn config.wsgi:application --bind 0.0.0.0:$PORT --workers 2 --timeout 120` |
+| Health Check Path | `/healthz` |
+
+### Environment variables
+
+| Key | Value |
+|---|---|
+| `PYTHON_VERSION` | `3.12.4` |
+| `DJANGO_SECRET_KEY` | A long random string, e.g. `python -c "import secrets; print(secrets.token_urlsafe(50))"` |
+| `DJANGO_DEBUG` | `False` |
+| `DATABASE_URL` | Supabase **Session pooler** connection string (same as in your local `.env`) |
+| `CORS_ALLOWED_ORIGINS` | The website's URL(s), comma-separated, e.g. `https://think-and-make.vercel.app,http://localhost:3000` |
+| `GOOGLE_MASTER_SHEET_ID` | Same as local |
+| `GOOGLE_SERVICE_ACCOUNT_FILE` | `/etc/secrets/google-service-account.json` |
+| `SHEETS_SYNC_ENABLED` / `SHEETS_SYNC_YEAR` | `True` / `2026` |
+| `GEMINI_API_KEY` | For InquiBuddy feedback |
+| `USE_S3_STORAGE` + `SUPABASE_STORAGE_*` | `True` plus your Supabase Storage S3 keys. **Needed for photo uploads**: Render's disk is wiped on every deploy |
+
+Under **Advanced → Secret Files**, add a file named `google-service-account.json` and paste the contents of your key from `backend/secrets/`.
+
+Notes:
+- **Don't use "Add from .env" as-is.** Your local `.env` has `DJANGO_DEBUG=True` and a Windows key path.
+- You don't need `DJANGO_ALLOWED_HOSTS` or `CSRF_TRUSTED_ORIGINS` for the `.onrender.com` address; Render's hostname is added automatically. Add them only for a custom domain.
+
+### After the first deploy
+
+- `https://<service>.onrender.com/healthz` → `ok`
+- `https://<service>.onrender.com/admin/` → styled admin login
+- `https://<service>.onrender.com/api/v1/partners/` → `401` (needs login, which is expected)
+- Point the website at it: `NEXT_PUBLIC_API_URL` and `DJANGO_API_URL` = `https://<service>.onrender.com/api/v1`, and `DJANGO_BASE_URL` = `https://<service>.onrender.com`.
+
+### Free-plan limits
+
+- **No automatic Sheets sync.** There's no Celery worker, so the 15-minute sync and nightly progress refresh don't run. Admins can still press **Sync now** on the dashboard; it runs in the background of the web service. For automatic syncs, add a Render **Cron Job** with the same repo, root directory and env vars, command `python manage.py sync_google_sheets`, schedule `*/15 * * * *`.
+- **Sleeps when idle.** After about 15 minutes without traffic, the first request takes roughly 30–60 seconds to wake it.
+- **InquiBuddy PDF reports** need system libraries (Pango) that Render's Python runtime may lack. If PDF download fails there, everything else still works.

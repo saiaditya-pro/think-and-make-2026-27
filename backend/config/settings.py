@@ -15,6 +15,23 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = config("DJANGO_SECRET_KEY", default="dev-only-insecure-secret-key")
 DEBUG = config("DJANGO_DEBUG", default=True, cast=bool)
 ALLOWED_HOSTS = config("DJANGO_ALLOWED_HOSTS", default="localhost,127.0.0.1", cast=Csv())
+CSRF_TRUSTED_ORIGINS = config("CSRF_TRUSTED_ORIGINS", default="", cast=Csv())
+
+# Render sets this to the service's public hostname (e.g. think-and-make.onrender.com).
+RENDER_EXTERNAL_HOSTNAME = config("RENDER_EXTERNAL_HOSTNAME", default="")
+if RENDER_EXTERNAL_HOSTNAME:
+    ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
+    CSRF_TRUSTED_ORIGINS.append(f"https://{RENDER_EXTERNAL_HOSTNAME}")
+
+if not DEBUG:
+    if SECRET_KEY == "dev-only-insecure-secret-key":
+        raise RuntimeError("Set DJANGO_SECRET_KEY when DJANGO_DEBUG is False.")
+    # Behind Render's proxy: trust its X-Forwarded-Proto so Django knows the
+    # request was HTTPS. Render already redirects HTTP -> HTTPS, so no
+    # SECURE_SSL_REDIRECT here (it would also break the HTTP health check).
+    SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
 
 INSTALLED_APPS = [
     "unfold",
@@ -46,6 +63,8 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    # Serves the admin's CSS/JS from STATIC_ROOT in production (no nginx).
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     "corsheaders.middleware.CorsMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -111,6 +130,7 @@ USE_I18N = True
 USE_TZ = True
 
 STATIC_URL = "static/"
+STATIC_ROOT = BASE_DIR / "staticfiles"  # filled by `collectstatic` (build.sh)
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 # --- REST Framework ---
@@ -189,10 +209,18 @@ SHEETS_SYNC_YEAR = config("SHEETS_SYNC_YEAR", default=2026, cast=int)
 # with zero external services; set these env vars to point at a real bucket.
 USE_S3_STORAGE = config("USE_S3_STORAGE", default=False, cast=bool)
 
+# Hashed + compressed static files served by WhiteNoise. Tests run without
+# collectstatic, so they keep the plain backend (the manifest one would fail).
+_STATICFILES_BACKEND = (
+    "django.contrib.staticfiles.storage.StaticFilesStorage"
+    if "pytest" in sys.modules
+    else "whitenoise.storage.CompressedManifestStaticFilesStorage"
+)
+
 if USE_S3_STORAGE:
     STORAGES = {
         "default": {"BACKEND": "storages.backends.s3boto3.S3Boto3Storage"},
-        "staticfiles": {"BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage"},
+        "staticfiles": {"BACKEND": _STATICFILES_BACKEND},
     }
     AWS_ACCESS_KEY_ID = config("SUPABASE_STORAGE_ACCESS_KEY_ID")
     AWS_SECRET_ACCESS_KEY = config("SUPABASE_STORAGE_SECRET_ACCESS_KEY")
@@ -204,6 +232,10 @@ if USE_S3_STORAGE:
     AWS_QUERYSTRING_EXPIRE = 600  # signed URLs valid 10 min
     AWS_S3_ADDRESSING_STYLE = "path"
 else:
+    STORAGES = {
+        "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
+        "staticfiles": {"BACKEND": _STATICFILES_BACKEND},
+    }
     MEDIA_URL = "/media/"
     MEDIA_ROOT = BASE_DIR / "media"
 
