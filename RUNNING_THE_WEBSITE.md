@@ -6,7 +6,7 @@ For how the backend and the Google Sheets sync work, see [BACKEND_ARCHITECTURE.m
 
 ```
 Browser ──► Next.js website :3000 ──► Django API :8000/api/v1 ──► database
-                      └── /admin, /media are proxied to Django
+                      └── /admin redirects to the Django admin
 ```
 
 ---
@@ -69,7 +69,7 @@ npm run dev                          # http://localhost:3000
 |---|---|---|
 | `NEXT_PUBLIC_API_URL` | `http://127.0.0.1:8000/api/v1` | API calls made from the browser |
 | `DJANGO_API_URL` | `http://127.0.0.1:8000/api/v1` | Login and token refresh, made by the Next.js server |
-| `DJANGO_BASE_URL` | `http://127.0.0.1:8000` | Proxying `/admin`, `/static` and `/media` to Django |
+| `DJANGO_BASE_URL` | `http://127.0.0.1:8000` | Where `/admin` on the website redirects to (the Django admin) |
 | `AUTH_SECRET` | `change-me` | Encrypts the login session cookie. **Replace it** with a random string: `npx auth secret`, or `node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"` |
 | `AUTH_TRUST_HOST` | `true` | Lets next-auth run on localhost |
 
@@ -150,7 +150,7 @@ cd web && npm run lint && npx tsc --noEmit # website lint + type check
 | Login fails with correct credentials | Check `DJANGO_API_URL` in `web/.env.local`, and that the user is active in Django admin |
 | Suddenly signed out / requests return 401 | The refresh token expired (7 days) or `AUTH_SECRET` changed. Sign in again |
 | `Port 3000/8000 is already in use` | Another dev server is still running. Stop it, or run `npm run dev -- -p 3001` / `runserver 8001` and update the URLs in `.env.local` |
-| `/admin` on :3000 loops or 404s | `DJANGO_BASE_URL` is wrong, or Django isn't running |
+| `/admin` on the website goes nowhere | `DJANGO_BASE_URL` is wrong, or Django isn't running. On Vercel, change it in Project Settings → Environment Variables and redeploy |
 | "Partly synced" / "Sync failed" on the dashboard | A Google Sheets problem, not a website problem. See BACKEND_ARCHITECTURE.md §8.8 |
 | Uploaded photos don't show | With `USE_S3_STORAGE=False`, Django serves `/media/` only when `DJANGO_DEBUG=True` |
 

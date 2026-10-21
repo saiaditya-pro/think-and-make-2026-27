@@ -1,6 +1,19 @@
 "use client";
 
-import { ArrowLeft, BarChart3, Building2, Camera, Home, LayoutGrid, Plus, Radio, Star, Users } from "lucide-react";
+import {
+  ArrowLeft,
+  BarChart3,
+  Building2,
+  Camera,
+  ExternalLink,
+  Home,
+  LayoutGrid,
+  Plus,
+  Radio,
+  Shield,
+  Star,
+  Users,
+} from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
@@ -66,6 +79,28 @@ function NavGroup({ label, items, pathname }: { label?: string; items: NavItem[]
   );
 }
 
+/** Opens the Django admin (redirected by next.config.ts) in a new tab. */
+function AdminPanelLink() {
+  return (
+    <SidebarGroup className="mt-auto">
+      <SidebarGroupContent>
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              render={<a href="/admin" target="_blank" rel="noopener noreferrer" />}
+              className="rounded-lg border-l-2 border-transparent text-white/80 hover:bg-white/10 hover:text-white"
+            >
+              <Shield className="size-4" />
+              <span>Admin panel</span>
+              <ExternalLink className="ml-auto size-3 text-white/50" />
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </SidebarMenu>
+      </SidebarGroupContent>
+    </SidebarGroup>
+  );
+}
+
 function PartnerHeader({ partnerId }: { partnerId: string }) {
   const { partner } = usePartner(partnerId);
 
@@ -117,6 +152,7 @@ export function AppSidebar({ role }: { role: string }) {
             <NavGroup label="Insights" items={[INQUIBUDDY_NAV]} pathname={pathname} />
           </>
         )}
+        {role === "admin" && <AdminPanelLink />}
       </SidebarContent>
     </Sidebar>
   );
